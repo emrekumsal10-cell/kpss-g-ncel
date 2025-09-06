@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kapsamlı KPSS Önlisans Planlayıcısı</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #1a1a2e; --surface-color: #16213e; --primary-color: #0f3460;
+            --secondary-color: #e94560; --text-color: #e0e0e0; --text-muted: #a0a0a0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', sans-serif; background-color: var(--bg-color);
+            color: var(--text-color); line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+        nav {
+            display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+            background-color: var(--surface-color); padding: 0.5rem 1rem;
+            border-radius: 12px; margin-bottom: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .nav-links { display: flex; flex-wrap: wrap; justify-content: center; }
+        .nav-link {
+            padding: 0.8rem 1rem; border: none; background: none; color: var(--text-muted);
+            cursor: pointer; font-size: 0.9rem; font-weight: 600; border-radius: 8px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .nav-link.active, .nav-link:hover { background-color: var(--secondary-color); color: white; }
+        #logout-btn {
+            background-color: transparent; border: 1px solid var(--secondary-color); color: var(--secondary-color);
+            padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+        }
+        #logout-btn:hover { background-color: var(--secondary-color); color: white; }
+        .page { display: none; }
+        .page.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .widget {
+            background-color: var(--surface-color); border-radius: 12px;
+            padding: 1.5rem; margin-bottom: 1.5rem;
+        }
+        h2 { color: white; margin-bottom: 1rem; font-size: 1.5rem; border-bottom: 2px solid var(--primary-color); padding-bottom: 0.5rem; }
+        h3 { color: var(--text-color); margin-bottom: 1rem; font-size: 1.2rem; }
+        
+        #auth-container {
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+        }
+        .auth-box {
+            background-color: var(--surface-color); padding: 2.5rem; border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4); text-align: center; max-width: 400px; width: 100%;
+        }
+        .auth-box h2 { border: none; }
+        .auth-form input {
+            width: 100%; padding: 0.8rem; margin-bottom: 1rem; background-color: var(--bg-color);
+            border: 1px solid var(--primary-color); color: var(--text-color); border-radius: 5px; font-size: 1rem;
+        }
+        .auth-form button {
+            width: 100%; padding: 0.8rem; background-color: var(--secondary-color); color: white;
+            border: none; border-radius: 5px; cursor: pointer; font-size: 1.1rem; font-weight: 600;
+        }
+        .auth-toggle-link {
+            margin-top: 1.5rem; color: var(--text-muted); cursor: pointer; display: block;
+        }
+        .auth-toggle-link:hover { color: var(--secondary-color); }
+        .auth-message { margin-top: 1rem; min-height: 1.2rem; }
+        #auth-error { color: var(--secondary-color); }
+        #auth-success { color: #28a745; }
+        #app-container { display: none; }
+        
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+        #countdown .countdown-grid { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; }
+        .countdown-item { font-size: 2rem; font-weight: 700; } .countdown-item span { display: block; font-size: 0.8rem; color: var(--text-muted); }
+        .subject-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        .subject-card { background-color: var(--primary-color); padding: 1rem; border-radius: 8px; }
+        .subject-card progress { width: 100%; margin: 0.5rem 0; appearance: none; }
+        .subject-card progress::-webkit-progress-bar { background-color: var(--bg-color); border-radius: 5px; }
+        .subject-card progress::-webkit-progress-value { background-color: var(--secondary-color); border-radius: 5px; transition: width 0.3s ease; }
+        .topic-list { list-style: none; padding-left: 0.5rem; max-height: 250px; overflow-y: auto; }
+        .topic-list li { margin-bottom: 0.5rem; }
+        .topic-list label { display: flex; align-items: center; cursor: pointer; }
+        .topic-list input[type="checkbox"] { margin-right: 0.8rem; }
+        .topic-list input:checked + span { text-decoration: line-through; color: var(--text-muted); }
+        #deneme-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        #deneme-form input { width: 100%; padding: 0.5rem; background-color: var(--bg-color); border: 1px solid var(--primary-color); color: var(--text-color); border-radius: 5px; }
+        #deneme-form button { background-color: var(--secondary-color); color: white; border: none; padding: 0.8rem; border-radius: 5px; cursor: pointer; grid-column: 1 / -1; }
+        #deneme-history { width: 100%; overflow-x: auto; margin-top: 1.5rem; }
+        #deneme-history table { width: 100%; border-collapse: collapse; }
+        #deneme-history th, #deneme-history td { padding: 0.8rem; text-align: center; border: 1px solid var(--primary-color); }
+        #deneme-history th { background-color: var(--primary-color); }
+        .weekly-plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+        .day-card textarea { width: 100%; min-height: 150px; background-color: var(--bg-color); border: 1px solid var(--primary-color); color: var(--text-color); border-radius: 5px; padding: 0.5rem; }
+        .settings-form, #change-password-form { margin-top: 2rem; }
+        .settings-form label, #change-password-form label { display: block; margin-bottom: 0.5rem; }
+        .settings-form input, #change-password-form input { padding: 0.5rem; background-color: var(--bg-color); border: 1px solid var(--primary-color); color: var(--text-color); border-radius: 5px; }
+        .settings-form button, #change-password-form button { background-color: var(--secondary-color); color: white; border: none; padding: 0.8rem; border-radius: 5px; cursor: pointer; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+    <div id="auth-container">
+        <div class="auth-box">
+            <div id="login-view">
+                <h2>Giriş Yap</h2>
+                <form id="login-form" class="auth-form">
+                    <input type="email" id="login-email" placeholder="E-posta Adresi" required>
+                    <input type="password" id="login-password" placeholder="Şifre" required>
+                    <button type="submit">Giriş Yap</button>
+                </form>
+                <div class="auth-message">
+                    <p id="auth-error"></p>
+                </div>
+                <span class="auth-toggle-link" id="show-register-view">Hesabın yok mu? Kayıt ol.</span>
+                <span class="auth-toggle-link" id="forgot-password-link">Şifremi Unuttum</span>
+            </div>
+            <div id="register-view" style="display:none;">
+                <h2>Kayıt Ol</h2>
+                <form id="register-form" class="auth-form">
+                    <input type="email" id="register-email" placeholder="E-posta Adresi" required>
+                    <input type="password" id="register-password" placeholder="Şifre" required>
+                    <button type="submit">Kayıt Ol</button>
+                </form>
+                <span class="auth-toggle-link" id="show-login-view">Zaten hesabın var mı? Giriş yap.</span>
+            </div>
+            <div id="reset-view" style="display:none;">
+                <h2>Şifre Sıfırla</h2>
+                <form id="reset-form" class="auth-form">
+                    <input type="email" id="reset-email" placeholder="Kayıtlı E-posta Adresiniz" required>
+                    <button type="submit">Sıfırlama E-postası Gönder</button>
+                </form>
+                 <div class="auth-message">
+                    <p id="auth-success"></p>
+                </div>
+                <span class="auth-toggle-link" id="back-to-login-link">Giriş ekranına dön</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container" class="container">
+        <nav>
+            <div class="nav-links">
+                <button class="nav-link active" data-target="dashboard-page">Ana Sayfa</button>
+                <button class="nav-link" data-target="konu-takip-page">Konu Takibi</button>
+                <button class="nav-link" data-target="deneme-analiz-page">Deneme Analizi</button>
+                <button class="nav-link" data-target="haftalik-plan-page">Haftalık Plan</button>
+                <button class="nav-link" data-target="ayarlar-page">Ayarlar</button>
+            </div>
+            <button id="logout-btn">Çıkış Yap</button>
+        </nav>
+        <main>
+            <section id="dashboard-page" class="page active">
+                <div class="dashboard-grid">
+                    <div id="countdown" class="widget">
+                        <h2>Sınava Kalan Süre</h2>
+                        <div class="countdown-grid">
+                            <div class="countdown-item"><div id="days">00</div><span>Gün</span></div>
+                            <div class="countdown-item"><div id="hours">00</div><span>Saat</span></div>
+                            <div class="countdown-item"><div id="minutes">00</div><span>Dakika</span></div>
+                            <div class="countdown-item"><div id="seconds">00</div><span>Saniye</span></div>
+                        </div>
+                    </div>
+                    <div class="widget">
+                        <h2>Günün Özeti</h2>
+                        <p id="quote" style="margin-top: 1rem; font-style: italic; color: var(--text-muted);"></p>
+                    </div>
+                    <div class="widget">
+                        <h2>Bugünkü Görevler</h2>
+                        <input type="text" id="todo-input" placeholder="Yeni görev ekle..." style="width: 100%; padding: 0.5rem; background-color: var(--bg-color); border: 1px solid var(--primary-color); color: var(--text-color); border-radius: 5px; margin-bottom: 1rem;">
+                        <ul id="todo-list" style="list-style: none;"></ul>
+                    </div>
+                </div>
+            </section>
+            <section id="konu-takip-page" class="page">
+                <h2>Konu Takip Çizelgesi</h2>
+                <div class="subject-grid"></div>
+            </section>
+            <section id="deneme-analiz-page" class="page">
+                <div class="widget">
+                    <h2>Yeni Deneme Ekle</h2>
+                    <form id="deneme-form">
+                        <div>
+                            <label for="deneme-adi">Deneme Adı/No:</label>
+                            <input type="text" id="deneme-adi" required>
+                        </div>
+                        <fieldset style="border:1px solid var(--primary-color); padding:1rem; border-radius:8px;">
+                            <legend>Genel Yetenek</legend>
+                            <label>Türkçe (D/Y/B):</label>
+                            <div style="display:flex; gap:5px;">
+                                <input type="number" class="deneme-input" placeholder="D" min="0"><input type="number" class="deneme-input" placeholder="Y" min="0"><input type="number" class="deneme-input" placeholder="B" min="0">
+                            </div>
+                            <label>Matematik (D/Y/B):</label>
+                            <div style="display:flex; gap:5px;">
+                                <input type="number" class="deneme-input" placeholder="D" min="0"><input type="number" class="deneme-input" placeholder="Y" min="0"><input type="number" class="deneme-input" placeholder="B" min="0">
+                            </div>
+                        </fieldset>
+                        <fieldset style="border:1px solid var(--primary-color); padding:1rem; border-radius:8px;">
+                            <legend>Genel Kültür</legend>
+                            <label>Tarih (D/Y/B):</label>
+                            <div style="display:flex; gap:5px;">
+                                <input type="number" class="deneme-input" placeholder="D" min="0"><input type="number" class="deneme-input" placeholder="Y" min="0"><input type="number" class="deneme-input" placeholder="B" min="0">
+                            </div>
+                            <label>Coğrafya (D/Y/B):</label>
+                            <div style="display:flex; gap:5px;">
+                                <input type="number" class="deneme-input" placeholder="D" min="0"><input type="number" class="deneme-input" placeholder="Y" min="0"><input type="number" class="deneme-input" placeholder="B" min="0">
+                            </div>
+                            <label>Vatandaşlık (D/Y/B):</label>
+                            <div style="display:flex; gap:5px;">
+                                <input type="number" class="deneme-input" placeholder="D" min="0"><input type="number" class="deneme-input" placeholder="Y" min="0"><input type="number" class="deneme-input" placeholder="B" min="0">
+                            </div>
+                        </fieldset>
+                        <button type="submit">Denemeyi Kaydet</button>
+                    </form>
+                </div>
+                <div class="widget">
+                    <h2>Deneme Geçmişi</h2>
+                    <div id="deneme-history"><table></table></div>
+                </div>
+            </section>
+            <section id="haftalik-plan-page" class="page">
+                <h2>Haftalık Çalışma Planı</h2>
+                <div class="weekly-plan-grid"></div>
+            </section>
+            <section id="ayarlar-page" class="page">
+                <div class="widget">
+                    <h2>Ayarlar</h2>
+                    <form class="settings-form">
+                        <label for="exam-date">KPSS Sınav Tarihini Ayarla:</label>
+                        <input type="date" id="exam-date">
+                        <button id="save-settings" type="button">Ayarları Kaydet</button>
+                        <p id="settings-saved-msg" style="color:var(--secondary-color); margin-top:1rem;"></p>
+                    </form>
+                    
+                    <form id="change-password-form">
+                        <h3 style="margin-top: 2rem;">Şifre Değiştirme</h3>
+                        <label for="new-password">Yeni Şifre:</label>
+                        <input type="password" id="new-password" required minlength="6">
+                        <button type="submit">Şifreyi Değiştir</button>
+                        <p id="change-password-msg" style="margin-top:1rem;"></p>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<script>
+    // =================================================================
+    // BURAYA KENDİ FIREBASE CONFIG BİLGİLERİNİ YAPIŞTIR
+    // =================================================================
+    const firebaseConfig = {
+      apiKey: "SENIN_API_KEYIN_BURAYA",
+      authDomain: "SENIN_PROJEN.firebaseapp.com",
+      projectId: "SENIN_PROJE_IDN",
+      storageBucket: "SENIN_PROJEN.appspot.com",
+      messagingSenderId: "SENIN_SENDER_IDN",
+      appId: "SENIN_APP_IDN"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- DOM ELEMENTLERİ ---
+    const authContainer = document.getElementById('auth-container');
+    const appContainer = document.getElementById('app-container');
+    const loginView = document.getElementById('login-view');
+    const registerView = document.getElementById('register-view');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const authError = document.getElementById('auth-error');
+    const authSuccess = document.getElementById('auth-success');
+    const logoutBtn = document.getElementById('logout-btn');
+    // YENİ EKLENENLER
+    const resetView = document.getElementById('reset-view');
+    const forgotPasswordLink = document.getElementById('forgot-password-link');
+    const backToLoginLink = document.getElementById('back-to-login-link');
+    const resetForm = document.getElementById('reset-form');
+
+    // --- FORM DEĞİŞTİRME ---
+    const clearMessages = () => { authError.textContent = ''; authSuccess.textContent = ''; };
+    document.getElementById('show-register-view').addEventListener('click', () => {
+        clearMessages(); loginView.style.display = 'none'; registerView.style.display = 'block';
+    });
+    document.getElementById('show-login-view').addEventListener('click', () => {
+        clearMessages(); registerView.style.display = 'none'; loginView.style.display = 'block';
+    });
+    // YENİ EKLENENLER
+    forgotPasswordLink.addEventListener('click', () => {
+        clearMessages(); loginView.style.display = 'none'; resetView.style.display = 'block';
+    });
+    backToLoginLink.addEventListener('click', () => {
+        clearMessages(); resetView.style.display = 'none'; loginView.style.display = 'block';
+    });
+
+    // --- FIREBASE AUTH İŞLEMLERİ ---
+    registerForm.addEventListener('submit', (e) => {
+        e.preventDefault(); clearMessages();
+        const email = document.getElementById('register-email').value;
+        const password = document.getElementById('register-password').value;
+
+        auth.createUserWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                const user = userCredential.user;
+                db.collection('users').doc(user.uid).set({
+                    email: user.email, createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    settings: { examDate: '2026-09-06' }, topicProgress: {}, denemeHistory: [], weeklyPlan: {}, todos: {}
+                }).then(() => {
+                    alert('Kayıt başarılı! Giriş ekranına yönlendiriliyorsunuz.');
+                    registerForm.reset(); document.getElementById('show-login-view').click();
+                });
+            })
+            .catch((error) => {
+                if (error.code === 'auth/email-already-in-use') authError.textContent = 'Bu e-posta zaten kullanılıyor.';
+                else if (error.code === 'auth/weak-password') authError.textContent = 'Şifre en az 6 karakter olmalı.';
+                else authError.textContent = 'Bir hata oluştu: ' + error.message;
+            });
+    });
+
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault(); clearMessages();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        auth.signInWithEmailAndPassword(email, password)
+            .catch((error) => { authError.textContent = 'E-posta veya şifre hatalı.'; });
+    });
+    
+    // YENİ: Şifre Sıfırlama
+    resetForm.addEventListener('submit', (e) => {
+        e.preventDefault(); clearMessages();
+        const email = document.getElementById('reset-email').value;
+        auth.sendPasswordResetEmail(email)
+            .then(() => {
+                authSuccess.textContent = 'Sıfırlama e-postası gönderildi. Lütfen gelen kutunuzu kontrol edin.';
+                resetForm.reset();
+            })
+            .catch((error) => {
+                if (error.code === 'auth/user-not-found') authError.textContent = 'Bu e-posta adresiyle kayıtlı bir kullanıcı bulunamadı.';
+                else authError.textContent = 'Bir hata oluştu: ' + error.message;
+            });
+    });
+
+    logoutBtn.addEventListener('click', () => { auth.signOut(); });
+
+    // --- OTURUM DURUMU YÖNETİCİSİ ---
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            authContainer.style.display = 'none';
+            appContainer.style.display = 'block';
+            initializeApp(user);
+        } else {
+            authContainer.style.display = 'flex';
+            appContainer.style.display = 'none';
+        }
+    });
+
+    // =================================================================
+    // UYGULAMA ANA MANTIĞI
+    // =================================================================
+    let appInitialized = false; // Uygulamanın tekrar tekrar başlatılmasını önlemek için bir bayrak
+    function initializeApp(user) {
+        if (appInitialized) return; // Zaten başlatıldıysa tekrar başlatma
+        appInitialized = true;
+
+        const userDocRef = db.collection('users').doc(user.uid);
+        let userData = {};
+
+        const kpssData = {
+            'Tarih': ['İslamiyet Öncesi Türk Tarihi', 'İlk Müslüman Türk Devletleri', 'Osmanlı Kuruluş ve Yükselme', 'Osmanlı Kültür ve Medeniyeti', 'Osmanlı Duraklama ve Gerileme', 'Osmanlı Dağılma', '20. Yüzyılda Osmanlı', 'Kurtuluş Savaşı Hazırlık', 'Kurtuluş Savaşı Muharebeler', 'İnkılaplar', 'Atatürk Dönemi İç ve Dış Politika', 'Çağdaş Türk ve Dünya Tarihi'],
+            'Coğrafya': ['Türkiye\'nin Coğrafi Konumu', 'Türkiye\'nin Yer Şekilleri ve İklimi', 'Türkiye\'de Nufus ve Yerleşme', 'Tarım ve Hayvancılık', 'Madenler ve Enerji Kaynakları', 'Sanayi ve Ticaret', 'Ulaşım ve Turizm', 'Bölgeler Coğrafyası'],
+            'Vatandaşlık': ['Temel Hukuk Kavramları', 'Anayasa Hukukuna Giriş', 'Yasama', 'Yürütme', 'Yargı', 'İdare Hukuku', 'İnsan Hakları'],
+            'Türkçe': ['Sözcükte Anlam', 'Cümlede Anlam', 'Paragraf', 'Yazım Kuralları', 'Noktalama İşaretleri', 'Ses Bilgisi', 'Yapı Bilgisi', 'Sözcük Türleri', 'Cümlenin Öğeleri', 'Cümle Türleri', 'Anlatım Bozuklukları', 'Sözel Mantık'],
+            'Matematik': ['Temel Kavramlar', 'Sayılar', 'Bölme ve Bölünebilme', 'OBEB-OKEK', 'Rasyonel Sayılar', 'Basit Eşitsizlikler', 'Mutlak Değer', 'Üslü ve Köklü Sayılar', 'Çarpanlara Ayırma', 'Oran-Orantı', 'Denklem Çözme', 'Problemler', 'Kümeler', 'İşlem ve Modüler Aritmetik', 'Permütasyon ve Olasılık', 'Sayısal Mantık', 'Geometri']
+        };
+        const quotes = ["Başarının sırrı, başlamaktır.", "Bugünün tekrarı, yarının netidir.", "Unutma, her net bir adımdır.", "En büyük zafer, hiç düşmemek değil, her düştüğünde kalkabilmektir."];
+        
+        userDocRef.onSnapshot((doc) => {
+            if (doc.exists) {
+                userData = doc.data();
+                renderAll();
+            }
+        });
+
+        function renderAll() {
+            renderDashboard(); renderTopicTrackers(); renderDenemeHistory(); renderWeeklyPlan(); renderSettings();
+        }
+
+        // --- ANA SAYFA (DASHBOARD) ---
+        // Geri sayım için global interval
+        let countdownInterval = null;
+        function renderDashboard() {
+            // Geri Sayım
+            clearInterval(countdownInterval);
+            const examDate = userData.settings?.examDate || '2026-09-06';
+            const kpssExamDate = new Date(`${examDate}T10:15:00`).getTime();
+            countdownInterval = setInterval(() => {
+                const now = new Date().getTime(); const distance = kpssExamDate - now;
+                if (distance < 0) { clearInterval(countdownInterval); return; }
+                document.getElementById('days').innerText = Math.floor(distance / (864e5));
+                document.getElementById('hours').innerText = Math.floor((distance % (864e5)) / (36e5));
+                document.getElementById('minutes').innerText = Math.floor((distance % (36e5)) / (6e4));
+                document.getElementById('seconds').innerText = Math.floor((distance % (6e4)) / 1000);
+            }, 1000);
+
+            if (!document.getElementById('quote').textContent) document.getElementById('quote').textContent = quotes[Math.floor(Math.random() * quotes.length)];
+            
+            const todoList = document.getElementById('todo-list');
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const todos = userData.todos?.[todayStr] || [];
+            todoList.innerHTML = '';
+            todos.forEach((todo, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `<label style="display:flex; align-items:center; cursor:pointer; flex-grow: 1;"><input type="checkbox" ${todo.completed ? 'checked' : ''} style="margin-right: 10px;"><span>${todo.text}</span></label><button style="background:none; border:none; color:var(--secondary-color); cursor:pointer; font-size:1.2rem; margin-left:auto;">&times;</button>`;
+                li.style.cssText = 'display:flex; align-items:center; margin-bottom:5px;';
+                if (todo.completed) li.querySelector('span').style.textDecoration = 'line-through';
+                li.querySelector('input').addEventListener('change', (e) => {
+                    todos[index].completed = e.target.checked; userDocRef.update({ [`todos.${todayStr}`]: todos });
+                });
+                li.querySelector('button').addEventListener('click', () => {
+                    todos.splice(index, 1); userDocRef.update({ [`todos.${todayStr}`]: todos });
+                });
+                todoList.appendChild(li);
+            });
+        }
+        const todoInput = document.getElementById('todo-input');
+        todoInput.addEventListener('keypress', e => {
+            if (e.key === 'Enter' && todoInput.value.trim()) {
+                const todayStr = new Date().toISOString().slice(0, 10);
+                const newTodos = userData.todos?.[todayStr] || [];
+                newTodos.push({ text: todoInput.value, completed: false });
+                userDocRef.update({ [`todos.${todayStr}`]: newTodos });
+                todoInput.value = '';
+            }
+        });
+
+        // --- KONU TAKİBİ ---
+        const subjectGrid = document.querySelector('#konu-takip-page .subject-grid');
+        function renderTopicTrackers() {
+            subjectGrid.innerHTML = '';
+            const topicProgress = userData.topicProgress || {};
+            Object.keys(kpssData).forEach(subject => {
+                const card = document.createElement('div'); card.className = 'subject-card';
+                const topics = kpssData[subject];
+                const checkedCount = topics.filter((t, i) => topicProgress[`${subject.replace(/\s/g, '-')}-${i}`]).length;
+                const progress = topics.length > 0 ? Math.round((checkedCount / topics.length) * 100) : 0;
+                card.innerHTML = `<h3>${subject}</h3><progress value="${progress}" max="100"></progress><p class="progress-text">${progress}% tamamlandı.</p><ul class="topic-list">${topics.map((topic, index) => {const topicId = `${subject.replace(/\s/g, '-')}-${index}`; return `<li><label><input type="checkbox" data-id="${topicId}" ${topicProgress[topicId] ? 'checked' : ''}><span>${topic}</span></label></li>`;}).join('')}</ul>`;
+                subjectGrid.appendChild(card);
+            });
+        }
+        subjectGrid.addEventListener('change', e => {
+            if (e.target.type === 'checkbox') {
+                const currentProgress = userData.topicProgress || {};
+                currentProgress[e.target.dataset.id] = e.target.checked;
+                userDocRef.update({ topicProgress: currentProgress });
+            }
+        });
+        
+        // --- DENEME ANALİZİ ---
+        const denemeForm = document.getElementById('deneme-form');
+        const denemeHistoryDiv = document.getElementById('deneme-history');
+        function renderDenemeHistory() {
+            const denemeHistory = userData.denemeHistory || [];
+            denemeHistory.sort((a,b) => b.timestamp - a.timestamp);
+            let tableHTML = '<table><thead><tr><th>Deneme</th><th>Toplam Net</th><th>GY Net</th><th>GK Net</th><th>Tarih</th></tr></thead><tbody>';
+            denemeHistory.forEach(deneme => {
+                tableHTML += `<tr><td>${deneme.name}</td><td>${deneme.totalNet.toFixed(2)}</td><td>${deneme.gyNet.toFixed(2)}</td><td>${deneme.gkNet.toFixed(2)}</td><td>${deneme.date}</td></tr>`;
+            });
+            tableHTML += '</tbody></table>'; denemeHistoryDiv.innerHTML = tableHTML;
+        }
+        denemeForm.addEventListener('submit', e => {
+            e.preventDefault();
+            const inputs = e.target.querySelectorAll('.deneme-input');
+            const allValues = [...inputs].map(input => Number(input.value) || 0);
+            const calculateNet = (d, y) => d - (y / 4);
+            const [gyTurkceNet, gyMatNet] = [calculateNet(allValues[0], allValues[1]), calculateNet(allValues[3], allValues[4])];
+            const [gkTarNet, gkCogNet, gkVatNet] = [calculateNet(allValues[6], allValues[7]), calculateNet(allValues[9], allValues[10]), calculateNet(allValues[12], allValues[13])];
+            const [gyNet, gkNet] = [gyTurkceNet + gyMatNet, gkTarNet + gkCogNet + gkVatNet];
+            userDocRef.update({ denemeHistory: firebase.firestore.FieldValue.arrayUnion({
+                name: document.getElementById('deneme-adi').value, gyNet, gkNet, totalNet: gyNet + gkNet,
+                date: new Date().toLocaleDateString('tr-TR'), timestamp: Date.now()
+            }) });
+            denemeForm.reset();
+        });
+
+        // --- HAFTALIK PLAN ---
+        const weeklyPlanGrid = document.querySelector('#haftalik-plan-page .weekly-plan-grid');
+        function renderWeeklyPlan() {
+            if(weeklyPlanGrid.childElementCount > 0) return;
+            const days = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'];
+            const weeklyPlan = userData.weeklyPlan || {};
+            days.forEach(day => {
+                const dayCard = document.createElement('div');
+                dayCard.className = 'day-card widget';
+                dayCard.innerHTML = `<h3>${day}</h3><textarea data-day="${day}" placeholder="Hedeflerini yaz...">${weeklyPlan[day] || ''}</textarea>`;
+                dayCard.querySelector('textarea').addEventListener('input', (e) => {
+                    const newPlan = userData.weeklyPlan || {}; newPlan[day] = e.target.value;
+                    userDocRef.update({ weeklyPlan: newPlan });
+                });
+                weeklyPlanGrid.appendChild(dayCard);
+            });
+        }
+        
+        // --- AYARLAR ---
+        const examDateInput = document.getElementById('exam-date');
+        const saveSettingsBtn = document.getElementById('save-settings');
+        const settingsMsg = document.getElementById('settings-saved-msg');
+        function renderSettings() { examDateInput.value = userData.settings?.examDate || '2026-09-06'; }
+        saveSettingsBtn.addEventListener('click', () => {
+            userDocRef.update({ 'settings.examDate': examDateInput.value }).then(() => {
+                settingsMsg.textContent = "Ayarlar kaydedildi."; setTimeout(() => settingsMsg.textContent = "", 3000);
+            });
+        });
+        
+        // YENİ: Şifre Değiştirme
+        const changePasswordForm = document.getElementById('change-password-form');
+        const newPasswordInput = document.getElementById('new-password');
+        const changePasswordMsg = document.getElementById('change-password-msg');
+        changePasswordForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newPassword = newPasswordInput.value;
+            changePasswordMsg.textContent = '';
+            
+            user.updatePassword(newPassword).then(() => {
+                changePasswordMsg.style.color = '#28a745';
+                changePasswordMsg.textContent = 'Şifreniz başarıyla güncellendi!';
+                changePasswordForm.reset();
+            }).catch((error) => {
+                changePasswordMsg.style.color = 'var(--secondary-color)';
+                // Bu hata, kullanıcının yakın zamanda giriş yapmadığı anlamına gelir. Güvenlik önlemidir.
+                if (error.code == 'auth/requires-recent-login') {
+                    changePasswordMsg.textContent = 'Bu işlem hassas olduğu için yeniden giriş yapmalısınız. Lütfen çıkış yapıp tekrar girin.';
+                } else {
+                    changePasswordMsg.textContent = 'Hata: ' + error.message;
+                }
+            });
+        });
+
+        // --- SAYFA NAVİGASYONU ---
+        const navLinks = document.querySelectorAll('.nav-link');
+        const pages = document.querySelectorAll('.page');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+                const target = link.dataset.target;
+                pages.forEach(page => page.classList.toggle('active', page.id === target));
+            });
+        });
+    }
+});
+</script>
+</body>
+</html>
