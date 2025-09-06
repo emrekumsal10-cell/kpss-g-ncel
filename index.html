@@ -43,7 +43,8 @@
         }
         h2 { color: white; margin-bottom: 1rem; font-size: 1.5rem; border-bottom: 2px solid var(--primary-color); padding-bottom: 0.5rem; }
         h3 { color: var(--text-color); margin-bottom: 1rem; font-size: 1.2rem; }
-        
+
+        /* YENİ: Oturum Açma Ekranı Stilleri */
         #auth-container {
             display: flex; justify-content: center; align-items: center; min-height: 100vh;
         }
@@ -61,27 +62,28 @@
             border: none; border-radius: 5px; cursor: pointer; font-size: 1.1rem; font-weight: 600;
         }
         .auth-toggle-link {
-            margin-top: 1.5rem; color: var(--text-muted); cursor: pointer; display: block;
+            margin-top: 1.5rem; color: var(--text-muted); cursor: pointer;
         }
         .auth-toggle-link:hover { color: var(--secondary-color); }
-        .auth-message { margin-top: 1rem; min-height: 1.2rem; }
-        #auth-error { color: var(--secondary-color); }
-        #auth-success { color: #28a745; }
-        #app-container { display: none; }
+        #auth-error { color: var(--secondary-color); margin-top: 1rem; min-height: 1.2rem; }
+        #app-container { display: none; } /* Başlangıçta uygulamayı gizle */
         
+        /* Dashboard */
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
         #countdown .countdown-grid { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; }
         .countdown-item { font-size: 2rem; font-weight: 700; } .countdown-item span { display: block; font-size: 0.8rem; color: var(--text-muted); }
+
+        /* Konu Takibi */
         .subject-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
         .subject-card { background-color: var(--primary-color); padding: 1rem; border-radius: 8px; }
-        .subject-card progress { width: 100%; margin: 0.5rem 0; appearance: none; }
-        .subject-card progress::-webkit-progress-bar { background-color: var(--bg-color); border-radius: 5px; }
-        .subject-card progress::-webkit-progress-value { background-color: var(--secondary-color); border-radius: 5px; transition: width 0.3s ease; }
+        .subject-card progress { width: 100%; margin: 0.5rem 0; }
         .topic-list { list-style: none; padding-left: 0.5rem; max-height: 250px; overflow-y: auto; }
         .topic-list li { margin-bottom: 0.5rem; }
         .topic-list label { display: flex; align-items: center; cursor: pointer; }
         .topic-list input[type="checkbox"] { margin-right: 0.8rem; }
         .topic-list input:checked + span { text-decoration: line-through; color: var(--text-muted); }
+
+        /* Deneme Analizi */
         #deneme-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
         #deneme-form input { width: 100%; padding: 0.5rem; background-color: var(--bg-color); border: 1px solid var(--primary-color); color: var(--text-color); border-radius: 5px; }
         #deneme-form button { background-color: var(--secondary-color); color: white; border: none; padding: 0.8rem; border-radius: 5px; cursor: pointer; grid-column: 1 / -1; }
@@ -89,12 +91,15 @@
         #deneme-history table { width: 100%; border-collapse: collapse; }
         #deneme-history th, #deneme-history td { padding: 0.8rem; text-align: center; border: 1px solid var(--primary-color); }
         #deneme-history th { background-color: var(--primary-color); }
+        
+        /* Haftalık Plan */
         .weekly-plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
         .day-card textarea { width: 100%; min-height: 150px; background-color: var(--bg-color); border: 1px solid var(--primary-color); color: var(--text-color); border-radius: 5px; padding: 0.5rem; }
-        .settings-form, #change-password-form { margin-top: 2rem; }
-        .settings-form label, #change-password-form label { display: block; margin-bottom: 0.5rem; }
-        .settings-form input, #change-password-form input { padding: 0.5rem; background-color: var(--bg-color); border: 1px solid var(--primary-color); color: var(--text-color); border-radius: 5px; }
-        .settings-form button, #change-password-form button { background-color: var(--secondary-color); color: white; border: none; padding: 0.8rem; border-radius: 5px; cursor: pointer; margin-top: 1rem; }
+
+        /* Ayarlar */
+        .settings-form label { display: block; margin-bottom: 0.5rem; }
+        .settings-form input { padding: 0.5rem; background-color: var(--bg-color); border: 1px solid var(--primary-color); color: var(--text-color); border-radius: 5px; }
+        .settings-form button { background-color: var(--secondary-color); color: white; border: none; padding: 0.8rem; border-radius: 5px; cursor: pointer; margin-top: 1rem; }
     </style>
 </head>
 <body>
@@ -103,35 +108,21 @@
             <div id="login-view">
                 <h2>Giriş Yap</h2>
                 <form id="login-form" class="auth-form">
-                    <input type="email" id="login-email" placeholder="E-posta Adresi" required>
+                    <input type="text" id="login-username" placeholder="Kullanıcı Adı" required>
                     <input type="password" id="login-password" placeholder="Şifre" required>
                     <button type="submit">Giriş Yap</button>
                 </form>
-                <div class="auth-message">
-                    <p id="auth-error"></p>
-                </div>
-                <span class="auth-toggle-link" id="show-register-view">Hesabın yok mu? Kayıt ol.</span>
-                <span class="auth-toggle-link" id="forgot-password-link">Şifremi Unuttum</span>
+                <p id="auth-error"></p>
+                <p class="auth-toggle-link" id="show-register-view">Hesabın yok mu? Kayıt ol.</p>
             </div>
             <div id="register-view" style="display:none;">
                 <h2>Kayıt Ol</h2>
                 <form id="register-form" class="auth-form">
-                    <input type="email" id="register-email" placeholder="E-posta Adresi" required>
+                    <input type="text" id="register-username" placeholder="Kullanıcı Adı" required>
                     <input type="password" id="register-password" placeholder="Şifre" required>
                     <button type="submit">Kayıt Ol</button>
                 </form>
-                <span class="auth-toggle-link" id="show-login-view">Zaten hesabın var mı? Giriş yap.</span>
-            </div>
-            <div id="reset-view" style="display:none;">
-                <h2>Şifre Sıfırla</h2>
-                <form id="reset-form" class="auth-form">
-                    <input type="email" id="reset-email" placeholder="Kayıtlı E-posta Adresiniz" required>
-                    <button type="submit">Sıfırlama E-postası Gönder</button>
-                </form>
-                 <div class="auth-message">
-                    <p id="auth-success"></p>
-                </div>
-                <span class="auth-toggle-link" id="back-to-login-link">Giriş ekranına dön</span>
+                <p class="auth-toggle-link" id="show-login-view">Zaten hesabın var mı? Giriş yap.</p>
             </div>
         </div>
     </div>
@@ -147,6 +138,7 @@
             </div>
             <button id="logout-btn">Çıkış Yap</button>
         </nav>
+
         <main>
             <section id="dashboard-page" class="page active">
                 <div class="dashboard-grid">
@@ -170,89 +162,79 @@
                     </div>
                 </div>
             </section>
+
             <section id="konu-takip-page" class="page">
                 <h2>Konu Takip Çizelgesi</h2>
                 <div class="subject-grid"></div>
             </section>
+
             <section id="deneme-analiz-page" class="page">
                 <div class="widget">
                     <h2>Yeni Deneme Ekle</h2>
                     <form id="deneme-form">
-                        <div><label for="deneme-adi">Deneme Adı/No:</label><input type="text" id="deneme-adi" required></div>
+                        <div>
+                            <label for="deneme-adi">Deneme Adı/No:</label>
+                            <input type="text" id="deneme-adi" required>
+                        </div>
                         <fieldset style="border:1px solid var(--primary-color); padding:1rem; border-radius:8px;">
                             <legend>Genel Yetenek</legend>
-                            <label>Türkçe (D/Y/B):</label><div style="display:flex; gap:5px;"><input type="number" class="deneme-input" placeholder="D" min="0"><input type="number" class="deneme-input" placeholder="Y" min="0"><input type="number" class="deneme-input" placeholder="B" min="0"></div>
-                            <label>Matematik (D/Y/B):</label><div style="display:flex; gap:5px;"><input type="number" class="deneme-input" placeholder="D" min="0"><input type="number" class="deneme-input" placeholder="Y" min="0"><input type="number" class="deneme-input" placeholder="B" min="0"></div>
+                            <label>Türkçe (D/Y/B):</label>
+                            <div style="display:flex; gap:5px;">
+                                <input type="number" class="deneme-input" placeholder="D" min="0"><input type="number" class="deneme-input" placeholder="Y" min="0"><input type="number" class="deneme-input" placeholder="B" min="0">
+                            </div>
+                            <label>Matematik (D/Y/B):</label>
+                            <div style="display:flex; gap:5px;">
+                                <input type="number" class="deneme-input" placeholder="D" min="0"><input type="number" class="deneme-input" placeholder="Y" min="0"><input type="number" class="deneme-input" placeholder="B" min="0">
+                            </div>
                         </fieldset>
                         <fieldset style="border:1px solid var(--primary-color); padding:1rem; border-radius:8px;">
                             <legend>Genel Kültür</legend>
-                            <label>Tarih (D/Y/B):</label><div style="display:flex; gap:5px;"><input type="number" class="deneme-input" placeholder="D" min="0"><input type="number" class="deneme-input" placeholder="Y" min="0"><input type="number" class="deneme-input" placeholder="B" min="0"></div>
-                            <label>Coğrafya (D/Y/B):</label><div style="display:flex; gap:5px;"><input type="number" class="deneme-input" placeholder="D" min="0"><input type="number" class="deneme-input" placeholder="Y" min="0"><input type="number" class="deneme-input" placeholder="B" min="0"></div>
-                            <label>Vatandaşlık (D/Y/B):</label><div style="display:flex; gap:5px;"><input type="number" class="deneme-input" placeholder="D" min="0"><input type="number" class="deneme-input" placeholder="Y" min="0"><input type="number" class="deneme-input" placeholder="B" min="0"></div>
+                            <label>Tarih (D/Y/B):</label>
+                            <div style="display:flex; gap:5px;">
+                                <input type="number" class="deneme-input" placeholder="D" min="0"><input type="number" class="deneme-input" placeholder="Y" min="0"><input type="number" class="deneme-input" placeholder="B" min="0">
+                            </div>
+                            <label>Coğrafya (D/Y/B):</label>
+                            <div style="display:flex; gap:5px;">
+                                <input type="number" class="deneme-input" placeholder="D" min="0"><input type="number" class="deneme-input" placeholder="Y" min="0"><input type="number" class="deneme-input" placeholder="B" min="0">
+                            </div>
+                            <label>Vatandaşlık (D/Y/B):</label>
+                            <div style="display:flex; gap:5px;">
+                                <input type="number" class="deneme-input" placeholder="D" min="0"><input type="number" class="deneme-input" placeholder="Y" min="0"><input type="number" class="deneme-input" placeholder="B" min="0">
+                            </div>
                         </fieldset>
                         <button type="submit">Denemeyi Kaydet</button>
                     </form>
                 </div>
-                <div class="widget"><h2>Deneme Geçmişi</h2><div id="deneme-history"><table></table></div></div>
+                <div class="widget">
+                    <h2>Deneme Geçmişi</h2>
+                    <div id="deneme-history"><table></table></div>
+                </div>
             </section>
-            <section id="haftalik-plan-page" class="page"><h2>Haftalık Çalışma Planı</h2><div class="weekly-plan-grid"></div></section>
+
+            <section id="haftalik-plan-page" class="page">
+                <h2>Haftalık Çalışma Planı</h2>
+                <div class="weekly-plan-grid"></div>
+            </section>
+
             <section id="ayarlar-page" class="page">
                 <div class="widget">
                     <h2>Ayarlar</h2>
-                    <form class="settings-form" onsubmit="return false;">
-                        <label for="exam-date">KPSS Sınav Tarihini Ayarla:</label><input type="date" id="exam-date">
-                        <button id="save-settings" type="button">Ayarları Kaydet</button>
+                    <div class="settings-form">
+                        <label for="exam-date">KPSS Sınav Tarihini Ayarla:</label>
+                        <input type="date" id="exam-date">
+                        <button id="save-settings">Ayarları Kaydet</button>
                         <p id="settings-saved-msg" style="color:var(--secondary-color); margin-top:1rem;"></p>
-                    </form>
-                    <form id="change-password-form">
-                        <h3 style="margin-top: 2rem;">Şifre Değiştirme</h3>
-                        <label for="new-password">Yeni Şifre:</label><input type="password" id="new-password" required minlength="6">
-                        <button type="submit">Şifreyi Değiştir</button>
-                        <p id="change-password-msg" style="margin-top:1rem;"></p>
-                    </form>
+                    </div>
                 </div>
             </section>
         </main>
     </div>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
 <script>
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyDcV7d9n32e19zhkwXcxmcCQS5aels0lsA",
-  authDomain: "kpss-planlayicim.firebaseapp.com",
-  projectId: "kpss-planlayicim",
-  storageBucket: "kpss-planlayicim.firebasestorage.app",
-  messagingSenderId: "1077913113896",
-  appId: "1:1077913113896:web:cdc7338b51453f4686ec1d",
-  measurementId: "G-83GFGCGTTC"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-    
-    // Firebase'i sadece bir kere başlat
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-</script>
-
-<script>
+// Bu script artık çok daha kapsamlı. Tüm mantık burada.
 document.addEventListener('DOMContentLoaded', () => {
-    // --- DOM ELEMENTLERİ ---
+
+    // --- KULLANICI YÖNETİMİ VE VERİTABANI ---
     const authContainer = document.getElementById('auth-container');
     const appContainer = document.getElementById('app-container');
     const loginView = document.getElementById('login-view');
@@ -260,282 +242,310 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
     const authError = document.getElementById('auth-error');
-    const authSuccess = document.getElementById('auth-success');
     const logoutBtn = document.getElementById('logout-btn');
-    const resetView = document.getElementById('reset-view');
-    const forgotPasswordLink = document.getElementById('forgot-password-link');
-    const backToLoginLink = document.getElementById('back-to-login-link');
-    const resetForm = document.getElementById('reset-form');
 
-    // --- FORM DEĞİŞTİRME ---
-    const clearMessages = () => { authError.textContent = ''; authSuccess.textContent = ''; };
+    // Basit veritabanı: Tüm kullanıcılar ve verileri burada saklanacak.
+    let userDatabase = JSON.parse(localStorage.getItem('kpssO_userDatabase')) || {};
+    let currentUser = sessionStorage.getItem('kpssO_currentUser');
+
+    const saveDatabase = () => localStorage.setItem('kpssO_userDatabase', JSON.stringify(userDatabase));
+
+    // Form değiştirme linkleri
     document.getElementById('show-register-view').addEventListener('click', () => {
-        clearMessages(); loginView.style.display = 'none'; registerView.style.display = 'block';
+        loginView.style.display = 'none';
+        registerView.style.display = 'block';
+        authError.textContent = '';
     });
     document.getElementById('show-login-view').addEventListener('click', () => {
-        clearMessages(); registerView.style.display = 'none'; resetView.style.display = 'none'; loginView.style.display = 'block';
-    });
-    forgotPasswordLink.addEventListener('click', () => {
-        clearMessages(); loginView.style.display = 'none'; resetView.style.display = 'block';
-    });
-    backToLoginLink.addEventListener('click', () => {
-        clearMessages(); resetView.style.display = 'none'; loginView.style.display = 'block';
+        registerView.style.display = 'none';
+        loginView.style.display = 'block';
+        authError.textContent = '';
     });
 
-    // --- FIREBASE AUTH İŞLEMLERİ ---
+    // Kayıt olma işlemi
     registerForm.addEventListener('submit', (e) => {
-        e.preventDefault(); clearMessages();
-        const email = document.getElementById('register-email').value;
+        e.preventDefault();
+        const username = document.getElementById('register-username').value.trim();
         const password = document.getElementById('register-password').value;
-        auth.createUserWithEmailAndPassword(email, password)
-            .then((userCredential) => {
-                const user = userCredential.user;
-                db.collection('users').doc(user.uid).set({
-                    email: user.email, createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    settings: { examDate: '2026-09-06' }, topicProgress: {}, denemeHistory: [], weeklyPlan: {}, todos: {}
-                }).then(() => {
-                    alert('Kayıt başarılı! Giriş ekranına yönlendiriliyorsunuz.');
-                    registerForm.reset(); document.getElementById('show-login-view').click();
-                });
-            })
-            .catch((error) => {
-                if (error.code === 'auth/email-already-in-use') authError.textContent = 'Bu e-posta zaten kullanılıyor.';
-                else if (error.code === 'auth/weak-password') authError.textContent = 'Şifre en az 6 karakter olmalı.';
-                else authError.textContent = 'Bir hata oluştu: ' + error.message;
-            });
-    });
 
-    loginForm.addEventListener('submit', (e) => {
-        e.preventDefault(); clearMessages();
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        auth.signInWithEmailAndPassword(email, password)
-            .catch((error) => { authError.textContent = 'E-posta veya şifre hatalı.'; });
+        if (userDatabase[username]) {
+            authError.textContent = 'Bu kullanıcı adı zaten alınmış.';
+            return;
+        }
+        // Yeni kullanıcı için varsayılan veri yapısı
+        userDatabase[username] = {
+            password: password, // Gerçek bir uygulamada şifre hashlenmelidir!
+            settings: { examDate: '2026-09-06' },
+            topicProgress: {},
+            denemeHistory: [],
+            weeklyPlan: {},
+            todos: {}
+        };
+        saveDatabase();
+        alert('Kayıt başarılı! Şimdi giriş yapabilirsiniz.');
+        document.getElementById('show-login-view').click();
     });
     
-    resetForm.addEventListener('submit', (e) => {
-        e.preventDefault(); clearMessages();
-        const email = document.getElementById('reset-email').value;
-        auth.sendPasswordResetEmail(email)
-            .then(() => {
-                authSuccess.textContent = 'Sıfırlama e-postası gönderildi. Lütfen gelen kutunuzu kontrol edin.';
-                resetForm.reset();
-            })
-            .catch((error) => {
-                if (error.code === 'auth/user-not-found') authError.textContent = 'Bu e-posta adresiyle kayıtlı bir kullanıcı bulunamadı.';
-                else authError.textContent = 'Bir hata oluştu: ' + error.message;
-            });
+    // Giriş yapma işlemi
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('login-username').value.trim();
+        const password = document.getElementById('login-password').value;
+
+        if (userDatabase[username] && userDatabase[username].password === password) {
+            sessionStorage.setItem('kpssO_currentUser', username);
+            currentUser = username;
+            initializeApp();
+        } else {
+            authError.textContent = 'Kullanıcı adı veya şifre hatalı.';
+        }
     });
 
-    logoutBtn.addEventListener('click', () => { auth.signOut(); });
+    // Çıkış yapma işlemi
+    logoutBtn.addEventListener('click', () => {
+        sessionStorage.removeItem('kpssO_currentUser');
+        currentUser = null;
+        authContainer.style.display = 'flex';
+        appContainer.style.display = 'none';
+    });
 
-    // --- OTURUM DURUMU YÖNETİCİSİ ---
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            authContainer.style.display = 'none';
-            appContainer.style.display = 'block';
-            initializeApp(user);
-        } else {
+    // --- UYGULAMA BAŞLATMA ---
+    function initializeApp() {
+        if (!currentUser) {
             authContainer.style.display = 'flex';
             appContainer.style.display = 'none';
-            // Çıkış yapıldığında interval'ı temizle
-            if (window.countdownInterval) clearInterval(window.countdownInterval);
+            return;
         }
-    });
-
-    // =================================================================
-    // UYGULAMA ANA MANTIĞI
-    // =================================================================
-    const appState = {}; // Event listener'ların tekrar eklenmesini önlemek için
-    function initializeApp(user) {
-        const userDocRef = db.collection('users').doc(user.uid);
-        let userData = {};
-
-        // Veriyi dinle ve arayüzü güncelle
-        const unsubscribe = userDocRef.onSnapshot((doc) => {
-            if (doc.exists) {
-                userData = doc.data();
-                renderAll(userData);
-            }
-        });
         
-        // Çıkış yapıldığında onSnapshot dinleyicisini kaldır
-        auth.onAuthStateChanged(user => { if (!user) unsubscribe(); });
+        authContainer.style.display = 'none';
+        appContainer.style.display = 'block';
 
-        if (!appState.isInitialized) { // Event listener'ları sadece bir kere ata
-            setupEventListeners();
-            appState.isInitialized = true;
+        // Geri kalan tüm uygulama kodları buraya taşındı ve
+        // artık verileri `userDatabase[currentUser]` üzerinden okuyup yazacak.
+        
+        let userData = userDatabase[currentUser];
+
+        const saveData = () => {
+            userDatabase[currentUser] = userData;
+            saveDatabase();
         }
 
-        function renderAll(data) {
-            renderDashboard(data.settings, data.todos);
-            renderTopicTrackers(data.topicProgress);
-            renderDenemeHistory(data.denemeHistory);
-            renderWeeklyPlan(data.weeklyPlan);
-            renderSettings(data.settings);
-        }
+        // --- TEMEL YAPI VE VERİLER ---
+        const navLinks = document.querySelectorAll('.nav-link');
+        const pages = document.querySelectorAll('.page');
+        const kpssData = {
+            'Tarih': ['İslamiyet Öncesi Türk Tarihi', 'İlk Müslüman Türk Devletleri', 'Osmanlı Kuruluş ve Yükselme', 'Osmanlı Kültür ve Medeniyeti', 'Osmanlı Duraklama ve Gerileme', 'Osmanlı Dağılma', '20. Yüzyılda Osmanlı', 'Kurtuluş Savaşı Hazırlık', 'Kurtuluş Savaşı Muharebeler', 'İnkılaplar', 'Atatürk Dönemi İç ve Dış Politika', 'Çağdaş Türk ve Dünya Tarihi'],
+            'Coğrafya': ['Türkiye\'nin Coğrafi Konumu', 'Türkiye\'nin Yer Şekilleri ve İklimi', 'Türkiye\'de Nüfus ve Yerleşme', 'Tarım ve Hayvancılık', 'Madenler ve Enerji Kaynakları', 'Sanayi ve Ticaret', 'Ulaşım ve Turizm', 'Bölgeler Coğrafyası'],
+            'Vatandaşlık': ['Temel Hukuk Kavramları', 'Anayasa Hukukuna Giriş', 'Yasama', 'Yürütme', 'Yargı', 'İdare Hukuku', 'İnsan Hakları'],
+            'Türkçe': ['Sözcükte Anlam', 'Cümlede Anlam', 'Paragraf', 'Yazım Kuralları', 'Noktalama İşaretleri', 'Ses Bilgisi', 'Yapı Bilgisi', 'Sözcük Türleri', 'Cümlenin Öğeleri', 'Cümle Türleri', 'Anlatım Bozuklukları', 'Sözel Mantık'],
+            'Matematik': ['Temel Kavramlar', 'Sayılar', 'Bölme ve Bölünebilme', 'OBEB-OKEK', 'Rasyonel Sayılar', 'Basit Eşitsizlikler', 'Mutlak Değer', 'Üslü ve Köklü Sayılar', 'Çarpanlara Ayırma', 'Oran-Orantı', 'Denklem Çözme', 'Problemler', 'Kümeler', 'İşlem ve Modüler Aritmetik', 'Permütasyon ve Olasılık', 'Sayısal Mantık', 'Geometri']
+        };
 
-        function setupEventListeners() {
-            // Statik Event Listener'lar buraya
-            const todoInput = document.getElementById('todo-input');
-            todoInput.addEventListener('keypress', e => {
-                if (e.key === 'Enter' && todoInput.value.trim()) {
-                    const todayStr = new Date().toISOString().slice(0, 10);
-                    const newTodos = userData.todos?.[todayStr] || [];
-                    newTodos.push({ text: todoInput.value, completed: false });
-                    userDocRef.update({ [`todos.${todayStr}`]: newTodos });
-                    todoInput.value = '';
+        // --- SAYFA NAVİGASYONU ---
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+                const target = link.dataset.target;
+                pages.forEach(page => page.classList.toggle('active', page.id === target));
+            });
+        });
+
+        // --- AYARLAR ---
+        const examDateInput = document.getElementById('exam-date');
+        const saveSettingsBtn = document.getElementById('save-settings');
+        const settingsMsg = document.getElementById('settings-saved-msg');
+        examDateInput.value = userData.settings.examDate;
+
+        saveSettingsBtn.addEventListener('click', () => {
+            userData.settings.examDate = examDateInput.value;
+            saveData();
+            settingsMsg.textContent = "Ayarlar kaydedildi. Geri sayım güncellendi.";
+            setTimeout(() => settingsMsg.textContent = "", 3000);
+            // Geri sayımı yeniden başlat
+            startCountdown();
+        });
+
+        // --- GERİ SAYIM SAYACI (ANA SAYFA) ---
+        let countdownInterval;
+        const startCountdown = () => {
+            clearInterval(countdownInterval);
+            const kpssExamDate = new Date(`${userData.settings.examDate}T10:15:00`).getTime();
+            countdownInterval = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = kpssExamDate - now;
+                if (distance < 0) {
+                    clearInterval(countdownInterval);
+                    document.getElementById('countdown').innerHTML = "<h2>Başarılar!</h2>";
+                    return;
                 }
-            });
-            
-            const subjectGrid = document.querySelector('#konu-takip-page .subject-grid');
-            subjectGrid.addEventListener('change', e => {
-                 if (e.target.type === 'checkbox') {
-                    const currentProgress = userData.topicProgress || {};
-                    currentProgress[e.target.dataset.id] = e.target.checked;
-                    userDocRef.update({ topicProgress: currentProgress });
-                }
-            });
-
-            const denemeForm = document.getElementById('deneme-form');
-            denemeForm.addEventListener('submit', e => {
-                e.preventDefault();
-                const inputs = e.target.querySelectorAll('.deneme-input');
-                const allValues = [...inputs].map(input => Number(input.value) || 0);
-                const calculateNet = (d, y) => d - (y / 4);
-                const [gyTurkceNet, gyMatNet] = [calculateNet(allValues[0], allValues[1]), calculateNet(allValues[3], allValues[4])];
-                const [gkTarNet, gkCogNet, gkVatNet] = [calculateNet(allValues[6], allValues[7]), calculateNet(allValues[9], allValues[10]), calculateNet(allValues[12], allValues[13])];
-                const [gyNet, gkNet] = [gyTurkceNet + gyMatNet, gkTarNet + gkCogNet + gkVatNet];
-                userDocRef.update({ denemeHistory: firebase.firestore.FieldValue.arrayUnion({
-                    name: document.getElementById('deneme-adi').value, gyNet, gkNet, totalNet: gyNet + gkNet,
-                    date: new Date().toLocaleDateString('tr-TR'), timestamp: Date.now()
-                }) });
-                denemeForm.reset();
-            });
-
-            const saveSettingsBtn = document.getElementById('save-settings');
-            saveSettingsBtn.addEventListener('click', () => {
-                const examDateInput = document.getElementById('exam-date');
-                userDocRef.update({ 'settings.examDate': examDateInput.value }).then(() => {
-                    const settingsMsg = document.getElementById('settings-saved-msg');
-                    settingsMsg.textContent = "Ayarlar kaydedildi."; setTimeout(() => settingsMsg.textContent = "", 3000);
-                });
-            });
-            
-            const changePasswordForm = document.getElementById('change-password-form');
-            changePasswordForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const newPasswordInput = document.getElementById('new-password');
-                const changePasswordMsg = document.getElementById('change-password-msg');
-                const newPassword = newPasswordInput.value;
-                changePasswordMsg.textContent = '';
-                
-                auth.currentUser.updatePassword(newPassword).then(() => {
-                    changePasswordMsg.style.color = '#28a745';
-                    changePasswordMsg.textContent = 'Şifreniz başarıyla güncellendi!';
-                    changePasswordForm.reset();
-                }).catch((error) => {
-                    changePasswordMsg.style.color = 'var(--secondary-color)';
-                    if (error.code == 'auth/requires-recent-login') {
-                        changePasswordMsg.textContent = 'Bu işlem için yeniden giriş yapmalısınız. Lütfen çıkış yapıp tekrar girin.';
-                    } else { changePasswordMsg.textContent = 'Hata: ' + error.message; }
-                });
-            });
-            
-            const navLinks = document.querySelectorAll('.nav-link');
-            const pages = document.querySelectorAll('.page');
-            navLinks.forEach(link => {
-                link.addEventListener('click', () => {
-                    navLinks.forEach(l => l.classList.remove('active'));
-                    link.classList.add('active');
-                    const target = link.dataset.target;
-                    pages.forEach(page => page.classList.toggle('active', page.id === target));
-                });
-            });
-        } // setupEventListeners sonu
-
-        // --- RENDER FONKSİYONLARI ---
-        function renderDashboard(settings, todosData) {
-            const examDate = settings?.examDate || '2026-09-06';
-            const kpssExamDate = new Date(`${examDate}T10:15:00`).getTime();
-            if (window.countdownInterval) clearInterval(window.countdownInterval);
-            window.countdownInterval = setInterval(() => {
-                const now = new Date().getTime(); const distance = kpssExamDate - now;
-                if (distance < 0) { clearInterval(window.countdownInterval); return; }
-                document.getElementById('days').innerText = Math.floor(distance / (864e5));
-                document.getElementById('hours').innerText = Math.floor((distance % (864e5)) / (36e5));
-                document.getElementById('minutes').innerText = Math.floor((distance % (36e5)) / (6e4));
-                document.getElementById('seconds').innerText = Math.floor((distance % (6e4)) / 1000);
+                document.getElementById('days').innerText = Math.floor(distance / (1000 * 60 * 60 * 24));
+                document.getElementById('hours').innerText = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                document.getElementById('minutes').innerText = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                document.getElementById('seconds').innerText = Math.floor((distance % (1000 * 60)) / 1000);
             }, 1000);
+        };
+        startCountdown();
 
-            const quoteEl = document.getElementById('quote');
-            if (!quoteEl.textContent) {
-                const quotes = ["Başarının sırrı, başlamaktır.", "Bugünün tekrarı, yarının netidir."];
-                quoteEl.textContent = quotes[Math.floor(Math.random() * quotes.length)];
-            }
-            
-            const todoList = document.getElementById('todo-list');
-            const todayStr = new Date().toISOString().slice(0, 10);
-            const todos = todosData?.[todayStr] || [];
+        // --- GÜNLÜK GÖREVLER (ANA SAYFA) ---
+        const todoInput = document.getElementById('todo-input');
+        const todoList = document.getElementById('todo-list');
+        const todayStr = new Date().toISOString().slice(0, 10);
+        
+        // Günlük görevleri kullanıcı verisinden al
+        if (!userData.todos[todayStr]) {
+            userData.todos[todayStr] = [];
+        }
+        let todos = userData.todos[todayStr];
+
+        const renderTodos = () => {
             todoList.innerHTML = '';
             todos.forEach((todo, index) => {
                 const li = document.createElement('li');
-                li.innerHTML = `<label style="display:flex; align-items:center; cursor:pointer; flex-grow: 1;"><input type="checkbox" ${todo.completed ? 'checked' : ''} style="margin-right: 10px;"><span>${todo.text}</span></label><button style="background:none; border:none; color:var(--secondary-color); cursor:pointer; font-size:1.2rem; margin-left:auto;">&times;</button>`;
-                li.style.cssText = 'display:flex; align-items:center; margin-bottom:5px;';
+                li.innerHTML = `<label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" ${todo.completed ? 'checked' : ''} style="margin-right: 10px;"><span>${todo.text}</span></label><button style="background:none; border:none; color:var(--secondary-color); cursor:pointer; font-size:1.2rem; margin-left:auto;">&times;</button>`;
+                li.style.display = 'flex';
+                li.style.alignItems = 'center';
+                li.style.marginBottom = '5px';
                 if (todo.completed) li.querySelector('span').style.textDecoration = 'line-through';
-                li.querySelector('input').addEventListener('change', (e) => {
-                    todos[index].completed = e.target.checked; userDocRef.update({ [`todos.${todayStr}`]: todos });
+                
+                li.querySelector('input').addEventListener('change', () => {
+                    todos[index].completed = !todos[index].completed;
+                    saveAndRenderTodos();
                 });
-                li.querySelector('button').addEventListener('click', () => {
-                    todos.splice(index, 1); userDocRef.update({ [`todos.${todayStr}`]: todos });
+                li.querySelector('button').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    todos.splice(index, 1);
+                    saveAndRenderTodos();
                 });
                 todoList.appendChild(li);
             });
-        }
-        function renderTopicTrackers(topicProgressData) {
-            const kpssData = { 'Tarih': ['İslamiyet Öncesi Türk Tarihi'], 'Coğrafya': ['Coğrafi Konum'], 'Vatandaşlık': ['Temel Hukuk'], 'Türkçe': ['Sözcükte Anlam'], 'Matematik': ['Temel Kavramlar'] }; // Örnek veri, tam listeyi ekleyebilirsiniz.
-            const subjectGrid = document.querySelector('#konu-takip-page .subject-grid');
-            subjectGrid.innerHTML = '';
-            const topicProgress = topicProgressData || {};
+        };
+        const saveAndRenderTodos = () => {
+            userData.todos[todayStr] = todos;
+            saveData();
+            renderTodos();
+        };
+        todoInput.addEventListener('keypress', e => {
+            if (e.key === 'Enter' && todoInput.value.trim()) {
+                todos.push({ text: todoInput.value, completed: false });
+                todoInput.value = '';
+                saveAndRenderTodos();
+            }
+        });
+        renderTodos();
+        
+        // --- MOTİVASYON SÖZÜ (ANA SAYFA) ---
+        const quotes = ["Başarının sırrı, başlamaktır.", "Bugünün tekrarı, yarının netidir.", "Unutma, her net bir adımdır.", "En büyük zafer, hiç düşmemek değil, her düştüğünde kalkabilmektir."];
+        document.getElementById('quote').textContent = quotes[Math.floor(Math.random() * quotes.length)];
+
+        // --- KONU TAKİBİ ---
+        const subjectGrid = document.querySelector('#konu-takip-page .subject-grid');
+        subjectGrid.innerHTML = ''; // Temizle
+        let topicProgress = userData.topicProgress;
+
+        Object.keys(kpssData).forEach(subject => {
+            const card = document.createElement('div');
+            card.className = 'subject-card';
+            const topicListHTML = kpssData[subject].map((topic, index) => {
+                const topicId = `${subject}-${index}`;
+                const isChecked = topicProgress[topicId] ? 'checked' : '';
+                return `<li><label><input type="checkbox" data-id="${topicId}" ${isChecked}><span>${topic}</span></label></li>`;
+            }).join('');
+            card.innerHTML = `<h3>${subject}</h3><progress value="0" max="100"></progress><p class="progress-text">0%</p><ul class="topic-list">${topicListHTML}</ul>`;
+            subjectGrid.appendChild(card);
+        });
+
+        const updateProgress = () => {
             Object.keys(kpssData).forEach(subject => {
-                const card = document.createElement('div'); card.className = 'subject-card';
                 const topics = kpssData[subject];
-                const checkedCount = topics.filter((t, i) => topicProgress[`${subject.replace(/\s/g, '-')}-${i}`]).length;
+                const checkedCount = topics.filter((t, i) => topicProgress[`${subject}-${i}`]).length;
                 const progress = topics.length > 0 ? Math.round((checkedCount / topics.length) * 100) : 0;
-                card.innerHTML = `<h3>${subject}</h3><progress value="${progress}" max="100"></progress><p class="progress-text">${progress}%</p><ul class="topic-list">${topics.map((topic, index) => {const topicId = `${subject.replace(/\s/g, '-')}-${index}`; return `<li><label><input type="checkbox" data-id="${topicId}" ${topicProgress[topicId] ? 'checked' : ''}><span>${topic}</span></label></li>`;}).join('')}</ul>`;
-                subjectGrid.appendChild(card);
+                const card = [...subjectGrid.children].find(c => c.querySelector('h3').textContent === subject);
+                if (card) {
+                    card.querySelector('progress').value = progress;
+                    card.querySelector('.progress-text').textContent = `${progress}% tamamlandı.`;
+                }
             });
-        }
-        function renderDenemeHistory(denemeHistoryData) {
-            const denemeHistory = denemeHistoryData || [];
-            denemeHistory.sort((a,b) => b.timestamp - a.timestamp);
-            const denemeHistoryDiv = document.getElementById('deneme-history');
+        };
+
+        subjectGrid.addEventListener('change', e => {
+            if (e.target.type === 'checkbox') {
+                topicProgress[e.target.dataset.id] = e.target.checked;
+                userData.topicProgress = topicProgress;
+                saveData();
+                updateProgress();
+            }
+        });
+        updateProgress();
+
+        // --- DENEME ANALİZİ ---
+        const denemeForm = document.getElementById('deneme-form');
+        const denemeHistoryDiv = document.getElementById('deneme-history');
+        let denemeHistory = userData.denemeHistory;
+
+        const renderDenemeHistory = () => {
             let tableHTML = '<table><thead><tr><th>Deneme</th><th>Toplam Net</th><th>GY Net</th><th>GK Net</th><th>Tarih</th></tr></thead><tbody>';
             denemeHistory.forEach(deneme => {
                 tableHTML += `<tr><td>${deneme.name}</td><td>${deneme.totalNet.toFixed(2)}</td><td>${deneme.gyNet.toFixed(2)}</td><td>${deneme.gkNet.toFixed(2)}</td><td>${deneme.date}</td></tr>`;
             });
-            tableHTML += '</tbody></table>'; denemeHistoryDiv.innerHTML = tableHTML;
-        }
-        function renderWeeklyPlan(weeklyPlanData) {
-            const weeklyPlanGrid = document.querySelector('#haftalik-plan-page .weekly-plan-grid');
-            if(weeklyPlanGrid.childElementCount > 0) return;
-            const days = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'];
-            const weeklyPlan = weeklyPlanData || {};
-            days.forEach(day => {
-                const dayCard = document.createElement('div');
-                dayCard.className = 'day-card widget';
-                dayCard.innerHTML = `<h3>${day}</h3><textarea data-day="${day}" placeholder="Hedeflerini yaz...">${weeklyPlan[day] || ''}</textarea>`;
-                dayCard.querySelector('textarea').addEventListener('input', (e) => {
-                    userDocRef.update({ [`weeklyPlan.${day}`]: e.target.value });
-                });
-                weeklyPlanGrid.appendChild(dayCard);
+            tableHTML += '</tbody></table>';
+            denemeHistoryDiv.innerHTML = tableHTML;
+        };
+
+        denemeForm.addEventListener('submit', e => {
+            e.preventDefault();
+            const inputs = e.target.querySelectorAll('.deneme-input');
+            const allValues = [...inputs].map(input => Number(input.value) || 0);
+            
+            const calculateNet = (d, y) => d - (y / 4);
+            
+            const gyTurkceNet = calculateNet(allValues[0], allValues[1]);
+            const gyMatNet = calculateNet(allValues[3], allValues[4]);
+            const gkTarNet = calculateNet(allValues[6], allValues[7]);
+            const gkCogNet = calculateNet(allValues[9], allValues[10]);
+            const gkVatNet = calculateNet(allValues[12], allValues[13]);
+            
+            const gyNet = gyTurkceNet + gyMatNet;
+            const gkNet = gkTarNet + gkCogNet + gkVatNet;
+            
+            denemeHistory.push({
+                name: document.getElementById('deneme-adi').value,
+                gyNet: gyNet,
+                gkNet: gkNet,
+                totalNet: gyNet + gkNet,
+                date: new Date().toLocaleDateString('tr-TR')
             });
-        }
-        function renderSettings(settingsData) {
-            const examDateInput = document.getElementById('exam-date');
-            examDateInput.value = settingsData?.examDate || '2026-09-06';
-        }
-    } // initializeApp sonu
+            userData.denemeHistory = denemeHistory;
+            saveData();
+            renderDenemeHistory();
+            denemeForm.reset();
+        });
+        renderDenemeHistory();
+
+        // --- HAFTALIK PLAN ---
+        const weeklyPlanGrid = document.querySelector('#haftalik-plan-page .weekly-plan-grid');
+        weeklyPlanGrid.innerHTML = ''; // Temizle
+        const days = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'];
+        let weeklyPlan = userData.weeklyPlan;
+
+        days.forEach(day => {
+            const dayCard = document.createElement('div');
+            dayCard.className = 'day-card widget';
+            dayCard.innerHTML = `<h3>${day}</h3><textarea data-day="${day}" placeholder="Hedeflerini yaz..."></textarea>`;
+            const textarea = dayCard.querySelector('textarea');
+            textarea.value = weeklyPlan[day] || '';
+            textarea.addEventListener('input', () => {
+                weeklyPlan[day] = textarea.value;
+                userData.weeklyPlan = weeklyPlan;
+                saveData();
+            });
+            weeklyPlanGrid.appendChild(dayCard);
+        });
+
+    } // initializeApp fonksiyonunun sonu
+    
+    // Sayfa yüklendiğinde oturum kontrolü yap ve uygulamayı başlat
+    initializeApp();
 });
 </script>
 </body>
