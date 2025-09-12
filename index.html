@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kapsamlı KPSS Önlisans Planlayıcısı</title>
+    <title>Gelişmiş KPSS Önlisans Planlayıcısı</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-color: #1a1a2e; --surface-color: #16213e; --primary-color: #0f3460;
             --secondary-color: #e94560; --text-color: #e0e0e0; --text-muted: #a0a0a0;
+            --success-color: #3dd598; --danger-color: #f7685b; --warning-color: #fca120;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
@@ -16,13 +18,14 @@
             font-family: 'Inter', sans-serif; background-color: var(--bg-color);
             color: var(--text-color); line-height: 1.6;
         }
-        .container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+        .container { max-width: 1300px; margin: 0 auto; padding: 1rem; }
         nav {
             display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
             background-color: var(--surface-color); padding: 0.5rem 1rem;
             border-radius: 12px; margin-bottom: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            position: sticky; top: 1rem; z-index: 1000;
         }
-        .nav-links { display: flex; flex-wrap: wrap; justify-content: center; }
+        .nav-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; }
         .nav-link {
             padding: 0.8rem 1rem; border: none; background: none; color: var(--text-muted);
             cursor: pointer; font-size: 0.9rem; font-weight: 600; border-radius: 8px;
@@ -36,70 +39,67 @@
         #logout-btn:hover { background-color: var(--secondary-color); color: white; }
         .page { display: none; }
         .page.active { display: block; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .widget {
             background-color: var(--surface-color); border-radius: 12px;
-            padding: 1.5rem; margin-bottom: 1.5rem;
+            padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
         h2 { color: white; margin-bottom: 1rem; font-size: 1.5rem; border-bottom: 2px solid var(--primary-color); padding-bottom: 0.5rem; }
         h3 { color: var(--text-color); margin-bottom: 1rem; font-size: 1.2rem; }
-
-        /* YENİ: Oturum Açma Ekranı Stilleri */
-        #auth-container {
-            display: flex; justify-content: center; align-items: center; min-height: 100vh;
-        }
-        .auth-box {
-            background-color: var(--surface-color); padding: 2.5rem; border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.4); text-align: center; max-width: 400px; width: 100%;
-        }
+        
+        /* Auth Screen */
+        #auth-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .auth-box { background-color: var(--surface-color); padding: 2.5rem; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.4); text-align: center; max-width: 400px; width: 100%; }
         .auth-box h2 { border: none; }
-        .auth-form input {
-            width: 100%; padding: 0.8rem; margin-bottom: 1rem; background-color: var(--bg-color);
-            border: 1px solid var(--primary-color); color: var(--text-color); border-radius: 5px; font-size: 1rem;
-        }
-        .auth-form button {
-            width: 100%; padding: 0.8rem; background-color: var(--secondary-color); color: white;
-            border: none; border-radius: 5px; cursor: pointer; font-size: 1.1rem; font-weight: 600;
-        }
-        .auth-toggle-link {
-            margin-top: 1.5rem; color: var(--text-muted); cursor: pointer;
-        }
+        .auth-form input { width: 100%; padding: 0.8rem; margin-bottom: 1rem; background-color: var(--bg-color); border: 1px solid var(--primary-color); color: var(--text-color); border-radius: 5px; font-size: 1rem; }
+        .auth-form button { width: 100%; padding: 0.8rem; background-color: var(--secondary-color); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1.1rem; font-weight: 600; }
+        .auth-toggle-link { margin-top: 1.5rem; color: var(--text-muted); cursor: pointer; }
         .auth-toggle-link:hover { color: var(--secondary-color); }
         #auth-error { color: var(--secondary-color); margin-top: 1rem; min-height: 1.2rem; }
-        #app-container { display: none; } /* Başlangıçta uygulamayı gizle */
-        
+        #app-container { display: none; }
+
         /* Dashboard */
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
-        #countdown .countdown-grid { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        .countdown-grid { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; }
         .countdown-item { font-size: 2rem; font-weight: 700; } .countdown-item span { display: block; font-size: 0.8rem; color: var(--text-muted); }
 
         /* Konu Takibi */
         .subject-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
         .subject-card { background-color: var(--primary-color); padding: 1rem; border-radius: 8px; }
-        .subject-card progress { width: 100%; margin: 0.5rem 0; }
+        .subject-card progress { width: 100%; margin: 0.5rem 0; accent-color: var(--secondary-color); }
         .topic-list { list-style: none; padding-left: 0.5rem; max-height: 250px; overflow-y: auto; }
-        .topic-list li { margin-bottom: 0.5rem; }
         .topic-list label { display: flex; align-items: center; cursor: pointer; }
         .topic-list input[type="checkbox"] { margin-right: 0.8rem; }
         .topic-list input:checked + span { text-decoration: line-through; color: var(--text-muted); }
 
-        /* Deneme Analizi */
-        #deneme-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-        #deneme-form input { width: 100%; padding: 0.5rem; background-color: var(--bg-color); border: 1px solid var(--primary-color); color: var(--text-color); border-radius: 5px; }
-        #deneme-form button { background-color: var(--secondary-color); color: white; border: none; padding: 0.8rem; border-radius: 5px; cursor: pointer; grid-column: 1 / -1; }
-        #deneme-history { width: 100%; overflow-x: auto; margin-top: 1.5rem; }
-        #deneme-history table { width: 100%; border-collapse: collapse; }
-        #deneme-history th, #deneme-history td { padding: 0.8rem; text-align: center; border: 1px solid var(--primary-color); }
-        #deneme-history th { background-color: var(--primary-color); }
-        
-        /* Haftalık Plan */
-        .weekly-plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
-        .day-card textarea { width: 100%; min-height: 150px; background-color: var(--bg-color); border: 1px solid var(--primary-color); color: var(--text-color); border-radius: 5px; padding: 0.5rem; }
+        /* Generic Forms & Tables */
+        .data-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: end; }
+        .data-form input, .data-form select, .data-form textarea { width: 100%; padding: 0.5rem; background-color: var(--bg-color); border: 1px solid var(--primary-color); color: var(--text-color); border-radius: 5px; }
+        .data-form button { background-color: var(--secondary-color); color: white; border: none; padding: 0.8rem; border-radius: 5px; cursor: pointer; grid-column: 1 / -1; }
+        .history-table-container { width: 100%; overflow-x: auto; margin-top: 1.5rem; }
+        .history-table { width: 100%; border-collapse: collapse; }
+        .history-table th, .history-table td { padding: 0.8rem; text-align: center; border: 1px solid var(--primary-color); }
+        .history-table th { background-color: var(--primary-color); }
+        .history-table .delete-btn, .history-table .details-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; }
+        .history-table .delete-btn { color: var(--danger-color); }
+        .history-table .details-btn { color: var(--success-color); }
 
-        /* Ayarlar */
-        .settings-form label { display: block; margin-bottom: 0.5rem; }
-        .settings-form input { padding: 0.5rem; background-color: var(--bg-color); border: 1px solid var(--primary-color); color: var(--text-color); border-radius: 5px; }
-        .settings-form button { background-color: var(--secondary-color); color: white; border: none; padding: 0.8rem; border-radius: 5px; cursor: pointer; margin-top: 1rem; }
+        /* Pomodoro Timer */
+        #pomodoro-timer { text-align: center; }
+        #pomodoro-display { font-size: 6rem; font-weight: 700; margin: 2rem 0; }
+        #pomodoro-controls button { background-color: var(--primary-color); color: white; border: none; padding: 1rem 2rem; margin: 0 0.5rem; border-radius: 8px; font-size: 1rem; cursor: pointer; }
+        #pomodoro-controls button:hover { background-color: var(--secondary-color); }
+
+        /* Toast & Modal */
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 2000; }
+        .toast { background-color: var(--surface-color); color: var(--text-color); padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); margin-bottom: 1rem; opacity: 0; transform: translateX(100%); animation: slideIn 0.5s forwards; border-left: 5px solid; }
+        .toast.success { border-left-color: var(--success-color); } .toast.error { border-left-color: var(--danger-color); }
+        @keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
+        .empty-state { text-align: center; color: var(--text-muted); padding: 2rem; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 3000; }
+        .modal-content { background-color: var(--surface-color); padding: 2rem; border-radius: 12px; width: 90%; max-width: 600px; position: relative; }
+        .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -133,6 +133,9 @@
                 <button class="nav-link active" data-target="dashboard-page">Ana Sayfa</button>
                 <button class="nav-link" data-target="konu-takip-page">Konu Takibi</button>
                 <button class="nav-link" data-target="deneme-analiz-page">Deneme Analizi</button>
+                <button class="nav-link" data-target="soru-takip-page">Soru Takibi</button>
+                <button class="nav-link" data-target="yanlis-defteri-page">Yanlış Defterim</button>
+                <button class="nav-link" data-target="pomodoro-page">Pomodoro</button>
                 <button class="nav-link" data-target="haftalik-plan-page">Haftalık Plan</button>
                 <button class="nav-link" data-target="ayarlar-page">Ayarlar</button>
             </div>
@@ -152,12 +155,23 @@
                         </div>
                     </div>
                     <div class="widget">
-                        <h2>Günün Özeti</h2>
-                        <p id="quote" style="margin-top: 1rem; font-style: italic; color: var(--text-muted);"></p>
+                        <h2>Genel İlerleme</h2>
+                        <div style="text-align:center; padding:1rem;">
+                            <progress id="overall-progress" value="0" max="100" style="width:100%; height:20px; accent-color: var(--success-color);"></progress>
+                            <p id="overall-progress-text" style="font-size:1.5rem; font-weight:bold; margin-top:0.5rem;">0%</p>
+                        </div>
                     </div>
                     <div class="widget">
+                        <h2>Son Deneme</h2>
+                        <div id="last-deneme-summary" class="empty-state">Henüz deneme çözülmedi.</div>
+                    </div>
+                    <div class="widget">
+                        <h2>Günün Mottosu</h2>
+                        <p id="quote" style="margin-top: 1rem; font-style: italic; color: var(--text-muted); text-align:center; font-size: 1.1rem;"></p>
+                    </div>
+                    <div class="widget" style="grid-column: 1 / -1;">
                         <h2>Bugünkü Görevler</h2>
-                        <input type="text" id="todo-input" placeholder="Yeni görev ekle..." style="width: 100%; padding: 0.5rem; background-color: var(--bg-color); border: 1px solid var(--primary-color); color: var(--text-color); border-radius: 5px; margin-bottom: 1rem;">
+                        <input type="text" id="todo-input" placeholder="Yeni görev ekle ve Enter'a bas..." style="width: 100%; padding: 0.5rem; background-color: var(--bg-color); border: 1px solid var(--primary-color); color: var(--text-color); border-radius: 5px; margin-bottom: 1rem;">
                         <ul id="todo-list" style="list-style: none;"></ul>
                     </div>
                 </div>
@@ -171,43 +185,77 @@
             <section id="deneme-analiz-page" class="page">
                 <div class="widget">
                     <h2>Yeni Deneme Ekle</h2>
-                    <form id="deneme-form">
-                        <div>
-                            <label for="deneme-adi">Deneme Adı/No:</label>
-                            <input type="text" id="deneme-adi" required>
-                        </div>
-                        <fieldset style="border:1px solid var(--primary-color); padding:1rem; border-radius:8px;">
-                            <legend>Genel Yetenek</legend>
-                            <label>Türkçe (D/Y/B):</label>
-                            <div style="display:flex; gap:5px;">
-                                <input type="number" class="deneme-input" placeholder="D" min="0"><input type="number" class="deneme-input" placeholder="Y" min="0"><input type="number" class="deneme-input" placeholder="B" min="0">
-                            </div>
-                            <label>Matematik (D/Y/B):</label>
-                            <div style="display:flex; gap:5px;">
-                                <input type="number" class="deneme-input" placeholder="D" min="0"><input type="number" class="deneme-input" placeholder="Y" min="0"><input type="number" class="deneme-input" placeholder="B" min="0">
-                            </div>
-                        </fieldset>
-                        <fieldset style="border:1px solid var(--primary-color); padding:1rem; border-radius:8px;">
-                            <legend>Genel Kültür</legend>
-                            <label>Tarih (D/Y/B):</label>
-                            <div style="display:flex; gap:5px;">
-                                <input type="number" class="deneme-input" placeholder="D" min="0"><input type="number" class="deneme-input" placeholder="Y" min="0"><input type="number" class="deneme-input" placeholder="B" min="0">
-                            </div>
-                            <label>Coğrafya (D/Y/B):</label>
-                            <div style="display:flex; gap:5px;">
-                                <input type="number" class="deneme-input" placeholder="D" min="0"><input type="number" class="deneme-input" placeholder="Y" min="0"><input type="number" class="deneme-input" placeholder="B" min="0">
-                            </div>
-                            <label>Vatandaşlık (D/Y/B):</label>
-                            <div style="display:flex; gap:5px;">
-                                <input type="number" class="deneme-input" placeholder="D" min="0"><input type="number" class="deneme-input" placeholder="Y" min="0"><input type="number" class="deneme-input" placeholder="B" min="0">
-                            </div>
-                        </fieldset>
-                        <button type="submit">Denemeyi Kaydet</button>
-                    </form>
+                    <form id="deneme-form" class="data-form"></form>
+                </div>
+                <div class="widget">
+                    <h2>Net Grafiği</h2>
+                    <div id="deneme-chart-container">
+                        <canvas id="deneme-chart"></canvas>
+                    </div>
                 </div>
                 <div class="widget">
                     <h2>Deneme Geçmişi</h2>
-                    <div id="deneme-history"><table></table></div>
+                    <div id="deneme-history-container" class="history-table-container"></div>
+                </div>
+            </section>
+            
+            <section id="soru-takip-page" class="page">
+                 <div class="widget">
+                    <h2>Günlük Soru Sayısı Ekle</h2>
+                    <form id="soru-takip-form" class="data-form">
+                        <div>
+                            <label for="soru-tarih">Tarih:</label>
+                            <input type="date" id="soru-tarih" required>
+                        </div>
+                        <div>
+                            <label for="soru-ders">Ders:</label>
+                            <select id="soru-ders" required></select>
+                        </div>
+                        <div>
+                            <label for="soru-sayisi">Çözülen Soru:</label>
+                            <input type="number" id="soru-sayisi" placeholder="Örn: 50" min="1" required>
+                        </div>
+                         <div>
+                            <label for="soru-dogru">Doğru Sayısı:</label>
+                            <input type="number" id="soru-dogru" placeholder="Örn: 45" min="0" required>
+                        </div>
+                        <button type="submit">Kaydet</button>
+                    </form>
+                </div>
+                <div class="widget">
+                    <h2>Soru Geçmişi</h2>
+                    <div id="soru-history-container" class="history-table-container"></div>
+                </div>
+            </section>
+
+            <section id="yanlis-defteri-page" class="page">
+                <div class="widget">
+                    <h2>Yanlış Soru Ekle</h2>
+                    <form id="yanlis-form" class="data-form">
+                        <div style="grid-column: 1 / -1;"><label>Ders:</label><select id="yanlis-ders" required></select></div>
+                        <div style="grid-column: 1 / -1;"><label>Konu:</label><input type="text" id="yanlis-konu" placeholder="Örn: Osmanlı Yükselme Dönemi" required></div>
+                        <div style="grid-column: 1 / -1;"><label>Notlar / Doğru Çözüm:</label><textarea id="yanlis-notlar" rows="4" placeholder="Soruyu neden yanlış yaptığınızı veya doğrusunun ne olduğunu yazın..."></textarea></div>
+                        <button type="submit">Yanlışı Kaydet</button>
+                    </form>
+                </div>
+                <div class="widget">
+                    <h2>Hata Defterim</h2>
+                    <div id="yanlis-history-container" class="history-table-container"></div>
+                </div>
+            </section>
+            
+            <section id="pomodoro-page" class="page">
+                <div class="widget">
+                    <h2>Pomodoro Zamanlayıcı</h2>
+                    <div id="pomodoro-timer">
+                        <div id="pomodoro-display">25:00</div>
+                        <div id="pomodoro-status" style="margin-bottom: 1rem; font-weight: 600; color: var(--warning-color);">Çalışma Zamanı</div>
+                        <div id="pomodoro-controls">
+                            <button id="pomodoro-start">Başlat</button>
+                            <button id="pomodoro-pause">Duraklat</button>
+                            <button id="pomodoro-reset">Sıfırla</button>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -215,7 +263,7 @@
                 <h2>Haftalık Çalışma Planı</h2>
                 <div class="weekly-plan-grid"></div>
             </section>
-
+            
             <section id="ayarlar-page" class="page">
                 <div class="widget">
                     <h2>Ayarlar</h2>
@@ -223,18 +271,26 @@
                         <label for="exam-date">KPSS Sınav Tarihini Ayarla:</label>
                         <input type="date" id="exam-date">
                         <button id="save-settings">Ayarları Kaydet</button>
-                        <p id="settings-saved-msg" style="color:var(--secondary-color); margin-top:1rem;"></p>
                     </div>
                 </div>
             </section>
         </main>
     </div>
 
+    <div id="deneme-details-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close">&times;</button>
+            <h2 id="modal-title">Deneme Detayları</h2>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+    
+    <div id="toast-container"></div>
+
 <script>
-// Bu script artık çok daha kapsamlı. Tüm mantık burada.
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- KULLANICI YÖNETİMİ VE VERİTABANI ---
+    // --- GLOBAL ELEMENTS & STATE ---
     const authContainer = document.getElementById('auth-container');
     const appContainer = document.getElementById('app-container');
     const loginView = document.getElementById('login-view');
@@ -244,56 +300,62 @@ document.addEventListener('DOMContentLoaded', () => {
     const authError = document.getElementById('auth-error');
     const logoutBtn = document.getElementById('logout-btn');
 
-    // Basit veritabanı: Tüm kullanıcılar ve verileri burada saklanacak.
-    let userDatabase = JSON.parse(localStorage.getItem('kpssO_userDatabase')) || {};
-    let currentUser = sessionStorage.getItem('kpssO_currentUser');
+    let userDatabase = JSON.parse(localStorage.getItem('kpssO_userDatabase_v2')) || {};
+    let currentUser = sessionStorage.getItem('kpssO_currentUser_v2');
+    let denemeChartInstance = null;
+    
+    const kpssData = {
+        'Türkçe': { q: 30, topics: ['Sözcükte Anlam', 'Cümlede Anlam', 'Paragraf', 'Yazım Kuralları', 'Noktalama İşaretleri', 'Ses Bilgisi', 'Yapı Bilgisi', 'Sözcük Türleri', 'Cümlenin Öğeleri', 'Cümle Türleri', 'Anlatım Bozuklukları', 'Sözel Mantık'] },
+        'Matematik': { q: 30, topics: ['Temel Kavramlar', 'Sayılar', 'Bölme ve Bölünebilme', 'OBEB-OKEK', 'Rasyonel Sayılar', 'Basit Eşitsizlikler', 'Mutlak Değer', 'Üslü ve Köklü Sayılar', 'Çarpanlara Ayırma', 'Oran-Orantı', 'Denklem Çözme', 'Problemler', 'Kümeler', 'İşlem ve Modüler Aritmetik', 'Permütasyon ve Olasılık', 'Sayısal Mantık', 'Geometri'] },
+        'Tarih': { q: 27, topics: ['İslamiyet Öncesi Türk Tarihi', 'İlk Müslüman Türk Devletleri', 'Osmanlı Kuruluş ve Yükselme', 'Osmanlı Kültür ve Medeniyeti', 'Osmanlı Duraklama ve Gerileme', 'Osmanlı Dağılma', '20. Yüzyılda Osmanlı', 'Kurtuluş Savaşı Hazırlık', 'Kurtuluş Savaşı Muharebeler', 'İnkılaplar', 'Atatürk Dönemi İç ve Dış Politika', 'Çağdaş Türk ve Dünya Tarihi'] },
+        'Coğrafya': { q: 18, topics: ['Türkiye\'nin Coğrafi Konumu', 'Türkiye\'nin Yer Şekilleri ve İklimi', 'Türkiye\'de Nüfus ve Yerleşme', 'Tarım ve Hayvancılık', 'Madenler ve Enerji Kaynakları', 'Sanayi ve Ticaret', 'Ulaşım ve Turizm', 'Bölgeler Coğrafyası'] },
+        'Vatandaşlık': { q: 15, topics: ['Temel Hukuk Kavramları', 'Anayasa Hukukuna Giriş', 'Yasama', 'Yürütme', 'Yargı', 'İdare Hukuku', 'İnsan Hakları'] }
+    };
+    
+    // --- HELPER FUNCTIONS ---
+    const saveDatabase = () => localStorage.setItem('kpssO_userDatabase_v2', JSON.stringify(userDatabase));
+    
+    const showToast = (message, type = 'success') => {
+        const toastContainer = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        toastContainer.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+    };
 
-    const saveDatabase = () => localStorage.setItem('kpssO_userDatabase', JSON.stringify(userDatabase));
-
-    // Form değiştirme linkleri
+    // --- AUTHENTICATION ---
     document.getElementById('show-register-view').addEventListener('click', () => {
-        loginView.style.display = 'none';
-        registerView.style.display = 'block';
-        authError.textContent = '';
+        loginView.style.display = 'none'; registerView.style.display = 'block'; authError.textContent = '';
     });
     document.getElementById('show-login-view').addEventListener('click', () => {
-        registerView.style.display = 'none';
-        loginView.style.display = 'block';
-        authError.textContent = '';
+        registerView.style.display = 'none'; loginView.style.display = 'block'; authError.textContent = '';
     });
 
-    // Kayıt olma işlemi
     registerForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const username = document.getElementById('register-username').value.trim();
         const password = document.getElementById('register-password').value;
-
         if (userDatabase[username]) {
-            authError.textContent = 'Bu kullanıcı adı zaten alınmış.';
-            return;
+            authError.textContent = 'Bu kullanıcı adı zaten alınmış.'; return;
         }
-        // Yeni kullanıcı için varsayılan veri yapısı
         userDatabase[username] = {
-            password: password, // Gerçek bir uygulamada şifre hashlenmelidir!
+            password: password, 
             settings: { examDate: '2026-09-06' },
-            topicProgress: {},
-            denemeHistory: [],
-            weeklyPlan: {},
-            todos: {}
+            topicProgress: {}, denemeHistory: [], weeklyPlan: {},
+            todos: {}, soruHistory: [], yanlisDefteri: []
         };
         saveDatabase();
-        alert('Kayıt başarılı! Şimdi giriş yapabilirsiniz.');
+        showToast('Kayıt başarılı! Şimdi giriş yapabilirsiniz.');
         document.getElementById('show-login-view').click();
     });
-    
-    // Giriş yapma işlemi
+
     loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const username = document.getElementById('login-username').value.trim();
         const password = document.getElementById('login-password').value;
-
         if (userDatabase[username] && userDatabase[username].password === password) {
-            sessionStorage.setItem('kpssO_currentUser', username);
+            sessionStorage.setItem('kpssO_currentUser_v2', username);
             currentUser = username;
             initializeApp();
         } else {
@@ -301,72 +363,71 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Çıkış yapma işlemi
     logoutBtn.addEventListener('click', () => {
-        sessionStorage.removeItem('kpssO_currentUser');
+        sessionStorage.removeItem('kpssO_currentUser_v2');
         currentUser = null;
         authContainer.style.display = 'flex';
         appContainer.style.display = 'none';
+        if (denemeChartInstance) {
+            denemeChartInstance.destroy();
+        }
     });
 
-    // --- UYGULAMA BAŞLATMA ---
+    // --- MAIN APP INITIALIZATION ---
     function initializeApp() {
         if (!currentUser) {
-            authContainer.style.display = 'flex';
-            appContainer.style.display = 'none';
-            return;
+            authContainer.style.display = 'flex'; appContainer.style.display = 'none'; return;
         }
-        
-        authContainer.style.display = 'none';
-        appContainer.style.display = 'block';
+        authContainer.style.display = 'none'; appContainer.style.display = 'block';
 
-        // Geri kalan tüm uygulama kodları buraya taşındı ve
-        // artık verileri `userDatabase[currentUser]` üzerinden okuyup yazacak.
-        
         let userData = userDatabase[currentUser];
+        if (!userData.yanlisDefteri) userData.yanlisDefteri = [];
+        if (!userData.soruHistory) userData.soruHistory = [];
 
-        const saveData = () => {
-            userDatabase[currentUser] = userData;
-            saveDatabase();
-        }
+        const saveData = () => { userDatabase[currentUser] = userData; saveDatabase(); };
 
-        // --- TEMEL YAPI VE VERİLER ---
+        // --- NAVIGATION ---
         const navLinks = document.querySelectorAll('.nav-link');
         const pages = document.querySelectorAll('.page');
-        const kpssData = {
-            'Tarih': ['İslamiyet Öncesi Türk Tarihi', 'İlk Müslüman Türk Devletleri', 'Osmanlı Kuruluş ve Yükselme', 'Osmanlı Kültür ve Medeniyeti', 'Osmanlı Duraklama ve Gerileme', 'Osmanlı Dağılma', '20. Yüzyılda Osmanlı', 'Kurtuluş Savaşı Hazırlık', 'Kurtuluş Savaşı Muharebeler', 'İnkılaplar', 'Atatürk Dönemi İç ve Dış Politika', 'Çağdaş Türk ve Dünya Tarihi'],
-            'Coğrafya': ['Türkiye\'nin Coğrafi Konumu', 'Türkiye\'nin Yer Şekilleri ve İklimi', 'Türkiye\'de Nüfus ve Yerleşme', 'Tarım ve Hayvancılık', 'Madenler ve Enerji Kaynakları', 'Sanayi ve Ticaret', 'Ulaşım ve Turizm', 'Bölgeler Coğrafyası'],
-            'Vatandaşlık': ['Temel Hukuk Kavramları', 'Anayasa Hukukuna Giriş', 'Yasama', 'Yürütme', 'Yargı', 'İdare Hukuku', 'İnsan Hakları'],
-            'Türkçe': ['Sözcükte Anlam', 'Cümlede Anlam', 'Paragraf', 'Yazım Kuralları', 'Noktalama İşaretleri', 'Ses Bilgisi', 'Yapı Bilgisi', 'Sözcük Türleri', 'Cümlenin Öğeleri', 'Cümle Türleri', 'Anlatım Bozuklukları', 'Sözel Mantık'],
-            'Matematik': ['Temel Kavramlar', 'Sayılar', 'Bölme ve Bölünebilme', 'OBEB-OKEK', 'Rasyonel Sayılar', 'Basit Eşitsizlikler', 'Mutlak Değer', 'Üslü ve Köklü Sayılar', 'Çarpanlara Ayırma', 'Oran-Orantı', 'Denklem Çözme', 'Problemler', 'Kümeler', 'İşlem ve Modüler Aritmetik', 'Permütasyon ve Olasılık', 'Sayısal Mantık', 'Geometri']
-        };
-
-        // --- SAYFA NAVİGASYONU ---
         navLinks.forEach(link => {
             link.addEventListener('click', () => {
                 navLinks.forEach(l => l.classList.remove('active'));
                 link.classList.add('active');
-                const target = link.dataset.target;
-                pages.forEach(page => page.classList.toggle('active', page.id === target));
+                pages.forEach(page => page.classList.toggle('active', page.id === link.dataset.target));
             });
         });
 
-        // --- AYARLAR ---
-        const examDateInput = document.getElementById('exam-date');
-        const saveSettingsBtn = document.getElementById('save-settings');
-        const settingsMsg = document.getElementById('settings-saved-msg');
-        examDateInput.value = userData.settings.examDate;
+        // --- DASHBOARD ---
+        const renderDashboard = () => {
+            const allTopics = Object.values(kpssData).flatMap(d => d.topics);
+            const totalTopicCount = allTopics.length;
+            const completedTopicCount = Object.values(userData.topicProgress).filter(Boolean).length;
+            const overallProgress = totalTopicCount > 0 ? Math.round((completedTopicCount / totalTopicCount) * 100) : 0;
+            document.getElementById('overall-progress').value = overallProgress;
+            document.getElementById('overall-progress-text').textContent = `${overallProgress}% Tamamlandı`;
 
-        saveSettingsBtn.addEventListener('click', () => {
+            const lastDenemeDiv = document.getElementById('last-deneme-summary');
+            if (userData.denemeHistory.length > 0) {
+                const lastDeneme = userData.denemeHistory[userData.denemeHistory.length - 1];
+                lastDenemeDiv.innerHTML = `<h3 style="border:none; margin-bottom:0.5rem;">${lastDeneme.name}</h3><p><strong>Toplam Net:</strong> ${lastDeneme.totalNet.toFixed(2)}</p><p><small>Tarih: ${lastDeneme.date}</small></p>`;
+                lastDenemeDiv.classList.remove('empty-state');
+            } else {
+                lastDenemeDiv.innerHTML = 'Henüz deneme çözülmedi.';
+                lastDenemeDiv.classList.add('empty-state');
+            }
+        };
+
+        // --- SETTINGS ---
+        const examDateInput = document.getElementById('exam-date');
+        examDateInput.value = userData.settings.examDate;
+        document.getElementById('save-settings').addEventListener('click', () => {
             userData.settings.examDate = examDateInput.value;
             saveData();
-            settingsMsg.textContent = "Ayarlar kaydedildi. Geri sayım güncellendi.";
-            setTimeout(() => settingsMsg.textContent = "", 3000);
-            // Geri sayımı yeniden başlat
+            showToast("Ayarlar kaydedildi.");
             startCountdown();
         });
 
-        // --- GERİ SAYIM SAYACI (ANA SAYFA) ---
+        // --- COUNTDOWN ---
         let countdownInterval;
         const startCountdown = () => {
             clearInterval(countdownInterval);
@@ -376,8 +437,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const distance = kpssExamDate - now;
                 if (distance < 0) {
                     clearInterval(countdownInterval);
-                    document.getElementById('countdown').innerHTML = "<h2>Başarılar!</h2>";
-                    return;
+                    document.getElementById('countdown').innerHTML = "<h2>Başarılar!</h2>"; return;
                 }
                 document.getElementById('days').innerText = Math.floor(distance / (1000 * 60 * 60 * 24));
                 document.getElementById('hours').innerText = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -385,80 +445,57 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('seconds').innerText = Math.floor((distance % (1000 * 60)) / 1000);
             }, 1000);
         };
-        startCountdown();
 
-        // --- GÜNLÜK GÖREVLER (ANA SAYFA) ---
+        // --- TODO LIST ---
         const todoInput = document.getElementById('todo-input');
         const todoList = document.getElementById('todo-list');
         const todayStr = new Date().toISOString().slice(0, 10);
-        
-        // Günlük görevleri kullanıcı verisinden al
-        if (!userData.todos[todayStr]) {
-            userData.todos[todayStr] = [];
-        }
+        if (!userData.todos[todayStr]) userData.todos[todayStr] = [];
         let todos = userData.todos[todayStr];
-
         const renderTodos = () => {
             todoList.innerHTML = '';
             todos.forEach((todo, index) => {
                 const li = document.createElement('li');
-                li.innerHTML = `<label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" ${todo.completed ? 'checked' : ''} style="margin-right: 10px;"><span>${todo.text}</span></label><button style="background:none; border:none; color:var(--secondary-color); cursor:pointer; font-size:1.2rem; margin-left:auto;">&times;</button>`;
-                li.style.display = 'flex';
-                li.style.alignItems = 'center';
-                li.style.marginBottom = '5px';
+                li.innerHTML = `<label style="display:flex; align-items:center; cursor:pointer;"><input type="checkbox" ${todo.completed ? 'checked' : ''} style="margin-right:10px;"><span>${todo.text}</span></label><button class="delete-btn">&times;</button>`;
+                li.style.display = 'flex'; li.style.alignItems = 'center'; li.style.marginBottom = '5px';
                 if (todo.completed) li.querySelector('span').style.textDecoration = 'line-through';
-                
                 li.querySelector('input').addEventListener('change', () => {
-                    todos[index].completed = !todos[index].completed;
-                    saveAndRenderTodos();
+                    todos[index].completed = !todos[index].completed; saveAndRenderTodos();
                 });
-                li.querySelector('button').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    todos.splice(index, 1);
-                    saveAndRenderTodos();
+                li.querySelector('button').addEventListener('click', () => {
+                    todos.splice(index, 1); saveAndRenderTodos();
                 });
                 todoList.appendChild(li);
             });
         };
         const saveAndRenderTodos = () => {
-            userData.todos[todayStr] = todos;
-            saveData();
-            renderTodos();
+            userData.todos[todayStr] = todos; saveData(); renderTodos();
         };
         todoInput.addEventListener('keypress', e => {
             if (e.key === 'Enter' && todoInput.value.trim()) {
                 todos.push({ text: todoInput.value, completed: false });
-                todoInput.value = '';
-                saveAndRenderTodos();
+                todoInput.value = ''; saveAndRenderTodos();
             }
         });
-        renderTodos();
-        
-        // --- MOTİVASYON SÖZÜ (ANA SAYFA) ---
+
+        // --- MOTIVATIONAL QUOTE ---
         const quotes = ["Başarının sırrı, başlamaktır.", "Bugünün tekrarı, yarının netidir.", "Unutma, her net bir adımdır.", "En büyük zafer, hiç düşmemek değil, her düştüğünde kalkabilmektir."];
-        document.getElementById('quote').textContent = quotes[Math.floor(Math.random() * quotes.length)];
+        document.getElementById('quote').textContent = `"${quotes[Math.floor(Math.random() * quotes.length)]}"`;
 
-        // --- KONU TAKİBİ ---
+        // --- KONU TAKIBI ---
         const subjectGrid = document.querySelector('#konu-takip-page .subject-grid');
-        subjectGrid.innerHTML = ''; // Temizle
-        let topicProgress = userData.topicProgress;
-
+        subjectGrid.innerHTML = '';
         Object.keys(kpssData).forEach(subject => {
             const card = document.createElement('div');
             card.className = 'subject-card';
-            const topicListHTML = kpssData[subject].map((topic, index) => {
-                const topicId = `${subject}-${index}`;
-                const isChecked = topicProgress[topicId] ? 'checked' : '';
-                return `<li><label><input type="checkbox" data-id="${topicId}" ${isChecked}><span>${topic}</span></label></li>`;
-            }).join('');
+            const topicListHTML = kpssData[subject].topics.map((topic, index) => `<li<label><input type="checkbox" data-id="${subject}-${index}" ${userData.topicProgress[`${subject}-${index}`] ? 'checked' : ''}><span>${topic}</span></label></li>`).join('');
             card.innerHTML = `<h3>${subject}</h3><progress value="0" max="100"></progress><p class="progress-text">0%</p><ul class="topic-list">${topicListHTML}</ul>`;
             subjectGrid.appendChild(card);
         });
-
         const updateProgress = () => {
             Object.keys(kpssData).forEach(subject => {
-                const topics = kpssData[subject];
-                const checkedCount = topics.filter((t, i) => topicProgress[`${subject}-${i}`]).length;
+                const topics = kpssData[subject].topics;
+                const checkedCount = topics.filter((t, i) => userData.topicProgress[`${subject}-${i}`]).length;
                 const progress = topics.length > 0 ? Math.round((checkedCount / topics.length) * 100) : 0;
                 const card = [...subjectGrid.children].find(c => c.querySelector('h3').textContent === subject);
                 if (card) {
@@ -466,87 +503,233 @@ document.addEventListener('DOMContentLoaded', () => {
                     card.querySelector('.progress-text').textContent = `${progress}% tamamlandı.`;
                 }
             });
+            renderDashboard();
         };
-
         subjectGrid.addEventListener('change', e => {
             if (e.target.type === 'checkbox') {
-                topicProgress[e.target.dataset.id] = e.target.checked;
-                userData.topicProgress = topicProgress;
-                saveData();
-                updateProgress();
+                userData.topicProgress[e.target.dataset.id] = e.target.checked;
+                saveData(); updateProgress();
             }
         });
-        updateProgress();
 
-        // --- DENEME ANALİZİ ---
+        // --- DENEME ANALIZI ---
         const denemeForm = document.getElementById('deneme-form');
-        const denemeHistoryDiv = document.getElementById('deneme-history');
-        let denemeHistory = userData.denemeHistory;
+        const denemeHistoryContainer = document.getElementById('deneme-history-container');
+        const denemeModal = document.getElementById('deneme-details-modal');
+        
+        let denemeFormHTML = `<div><label for="deneme-adi">Deneme Adı/No:</label><input type="text" id="deneme-adi" required></div>`;
+        const gyDersler = ['Türkçe', 'Matematik'];
+        const gkDersler = ['Tarih', 'Coğrafya', 'Vatandaşlık'];
+        denemeFormHTML += `<fieldset style="border:1px solid var(--primary-color); padding:1rem; border-radius:8px;"><legend>Genel Yetenek</legend>`;
+        gyDersler.forEach(ders => { denemeFormHTML += `<label>${ders} (${kpssData[ders].q} Soru) (D/Y/B):</label><div style="display:flex; gap:5px; margin-bottom:0.5rem;"><input type="number" class="deneme-input" data-ders="${ders}" placeholder="D" min="0" max="${kpssData[ders].q}"><input type="number" class="deneme-input" data-ders="${ders}" placeholder="Y" min="0" max="${kpssData[ders].q}"><input type="number" class="deneme-input" data-ders="${ders}" placeholder="B" min="0" max="${kpssData[ders].q}"></div>`; });
+        denemeFormHTML += `</fieldset><fieldset style="border:1px solid var(--primary-color); padding:1rem; border-radius:8px;"><legend>Genel Kültür</legend>`;
+        gkDersler.forEach(ders => { denemeFormHTML += `<label>${ders} (${kpssData[ders].q} Soru) (D/Y/B):</label><div style="display:flex; gap:5px; margin-bottom:0.5rem;"><input type="number" class="deneme-input" data-ders="${ders}" placeholder="D" min="0" max="${kpssData[ders].q}"><input type="number" class="deneme-input" data-ders="${ders}" placeholder="Y" min="0" max="${kpssData[ders].q}"><input type="number" class="deneme-input" data-ders="${ders}" placeholder="B" min="0" max="${kpssData[ders].q}"></div>`; });
+        denemeFormHTML += `</fieldset><button type="submit">Denemeyi Kaydet</button>`;
+        denemeForm.innerHTML = denemeFormHTML;
 
         const renderDenemeHistory = () => {
-            let tableHTML = '<table><thead><tr><th>Deneme</th><th>Toplam Net</th><th>GY Net</th><th>GK Net</th><th>Tarih</th></tr></thead><tbody>';
-            denemeHistory.forEach(deneme => {
-                tableHTML += `<tr><td>${deneme.name}</td><td>${deneme.totalNet.toFixed(2)}</td><td>${deneme.gyNet.toFixed(2)}</td><td>${deneme.gkNet.toFixed(2)}</td><td>${deneme.date}</td></tr>`;
+            let tableHTML = '<table class="history-table"><thead><tr><th>Deneme Adı</th><th>Toplam Net</th><th>GY Net</th><th>GK Net</th><th>Tarih</th><th>İşlemler</th></tr></thead><tbody>';
+            userData.denemeHistory.forEach((deneme, index) => {
+                tableHTML += `<tr><td>${deneme.name}</td><td>${deneme.totalNet.toFixed(2)}</td><td>${deneme.gyNet.toFixed(2)}</td><td>${deneme.gkNet.toFixed(2)}</td><td>${deneme.date}</td><td><button class="details-btn" data-index="${index}" title="Detayları Gör">&#128269;</button><button class="delete-btn" data-index="${index}" title="Sil">&times;</button></td></tr>`;
             });
             tableHTML += '</tbody></table>';
-            denemeHistoryDiv.innerHTML = tableHTML;
+            denemeHistoryContainer.innerHTML = userData.denemeHistory.length ? tableHTML : '<p class="empty-state">Henüz deneme geçmişi bulunmuyor.</p>';
+        };
+        
+        const renderDenemeChart = () => {
+            const ctx = document.getElementById('deneme-chart').getContext('2d');
+            if (denemeChartInstance) denemeChartInstance.destroy();
+            if(userData.denemeHistory.length === 0) return;
+            denemeChartInstance = new Chart(ctx, { type: 'line', data: { labels: userData.denemeHistory.map(d => `${d.name} (${d.date})`), datasets: [{ label: 'Toplam Net', data: userData.denemeHistory.map(d => d.totalNet), borderColor: 'rgba(233, 69, 96, 1)', backgroundColor: 'rgba(233, 69, 96, 0.2)', fill: true, tension: 0.1 }] }, options: { scales: { y: { beginAtZero: true } } } });
         };
 
         denemeForm.addEventListener('submit', e => {
             e.preventDefault();
-            const inputs = e.target.querySelectorAll('.deneme-input');
-            const allValues = [...inputs].map(input => Number(input.value) || 0);
+            const nets = {};
+            try {
+                Object.keys(kpssData).forEach(ders => {
+                    const inputs = [...e.target.querySelectorAll(`.deneme-input[data-ders="${ders}"]`)];
+                    const d = Number(inputs[0].value) || 0; const y = Number(inputs[1].value) || 0; const b = Number(inputs[2].value) || 0;
+                    if ((d + y + b) > kpssData[ders].q) {
+                        showToast(`${ders} için girilen D/Y/B toplamı, toplam soru sayısını (${kpssData[ders].q}) aşıyor!`, 'error');
+                        throw new Error("Invalid input count");
+                    }
+                    nets[ders] = d - (y / 4);
+                });
+            } catch (error) { return; }
             
-            const calculateNet = (d, y) => d - (y / 4);
-            
-            const gyTurkceNet = calculateNet(allValues[0], allValues[1]);
-            const gyMatNet = calculateNet(allValues[3], allValues[4]);
-            const gkTarNet = calculateNet(allValues[6], allValues[7]);
-            const gkCogNet = calculateNet(allValues[9], allValues[10]);
-            const gkVatNet = calculateNet(allValues[12], allValues[13]);
-            
-            const gyNet = gyTurkceNet + gyMatNet;
-            const gkNet = gkTarNet + gkCogNet + gkVatNet;
-            
-            denemeHistory.push({
-                name: document.getElementById('deneme-adi').value,
-                gyNet: gyNet,
-                gkNet: gkNet,
-                totalNet: gyNet + gkNet,
-                date: new Date().toLocaleDateString('tr-TR')
-            });
-            userData.denemeHistory = denemeHistory;
-            saveData();
-            renderDenemeHistory();
-            denemeForm.reset();
+            const gyNet = gyDersler.reduce((sum, ders) => sum + nets[ders], 0);
+            const gkNet = gkDersler.reduce((sum, ders) => sum + nets[ders], 0);
+
+            userData.denemeHistory.push({ id: Date.now(), name: document.getElementById('deneme-adi').value, gyNet, gkNet, totalNet: gyNet + gkNet, date: new Date().toLocaleDateString('tr-TR'), netsByDers: nets });
+            saveData(); renderDenemeHistory(); renderDenemeChart(); renderDashboard(); denemeForm.reset(); showToast('Deneme başarıyla kaydedildi.');
         });
-        renderDenemeHistory();
+        denemeHistoryContainer.addEventListener('click', e => {
+            const detailsBtn = e.target.closest('.details-btn');
+            const deleteBtn = e.target.closest('.delete-btn');
+            if (deleteBtn) {
+                const index = deleteBtn.dataset.index;
+                userData.denemeHistory.splice(index, 1);
+                saveData(); renderDenemeHistory(); renderDenemeChart(); renderDashboard(); showToast('Deneme kaydı silindi.', 'error');
+            }
+            if (detailsBtn) {
+                const index = detailsBtn.dataset.index;
+                const deneme = userData.denemeHistory[index];
+                document.querySelector('#modal-title').textContent = `${deneme.name} - Detayları`;
+                let bodyHtml = '<ul>';
+                if (deneme.netsByDers) {
+                    for (const ders in deneme.netsByDers) { bodyHtml += `<li><strong>${ders}:</strong> ${deneme.netsByDers[ders].toFixed(2)} Net</li>`; }
+                } else { bodyHtml += '<li>Bu deneme için ders detayı kaydedilmemiş.</li>'; }
+                bodyHtml += '</ul>';
+                document.querySelector('#modal-body').innerHTML = bodyHtml;
+                denemeModal.style.display = 'flex';
+            }
+        });
+        
+        denemeModal.querySelector('.modal-close').addEventListener('click', () => denemeModal.style.display = 'none');
+        denemeModal.addEventListener('click', (e) => { if(e.target === denemeModal) denemeModal.style.display = 'none'; });
+
+        // --- SORU TAKİBİ ---
+        const soruForm = document.getElementById('soru-takip-form');
+        const soruTarihInput = document.getElementById('soru-tarih');
+        const soruDersSelect = document.getElementById('soru-ders');
+        const soruHistoryContainer = document.getElementById('soru-history-container');
+        soruTarihInput.valueAsDate = new Date();
+        soruDersSelect.innerHTML = Object.keys(kpssData).map(ders => `<option value="${ders}">${ders}</option>`).join('');
+
+        const renderSoruHistory = () => {
+             if (userData.soruHistory.length === 0) {
+                soruHistoryContainer.innerHTML = '<p class="empty-state">Henüz soru kaydı bulunmuyor.</p>'; return;
+            }
+            let tableHTML = '<table class="history-table"><thead><tr><th>Tarih</th><th>Ders</th><th>Soru</th><th>Doğru</th><th>Net</th><th>İşlem</th></tr></thead><tbody>';
+            const sortedHistory = [...userData.soruHistory].sort((a, b) => new Date(b.date) - new Date(a.date));
+            sortedHistory.forEach((entry) => {
+                const net = entry.dogru - ((entry.soru - entry.dogru) / 4);
+                tableHTML += `<tr><td>${new Date(entry.date).toLocaleDateString('tr-TR')}</td><td>${entry.ders}</td><td>${entry.soru}</td><td>${entry.dogru}</td><td>${net.toFixed(2)}</td><td><button class="delete-btn" data-id="${entry.id}">&times;</button></td></tr>`;
+            });
+            tableHTML += '</tbody></table>';
+            soruHistoryContainer.innerHTML = tableHTML;
+        };
+        soruForm.addEventListener('submit', e => {
+            e.preventDefault();
+            const soruSayisi = Number(document.getElementById('soru-sayisi').value);
+            const dogruSayisi = Number(document.getElementById('soru-dogru').value);
+            if(dogruSayisi > soruSayisi) { showToast('Doğru sayısı çözülen soru sayısından fazla olamaz!', 'error'); return; }
+            userData.soruHistory.push({ id: Date.now(), date: soruTarihInput.value, ders: soruDersSelect.value, soru: soruSayisi, dogru: dogruSayisi });
+            saveData(); renderSoruHistory(); soruForm.reset(); soruTarihInput.valueAsDate = new Date(); showToast('Soru kaydı eklendi.');
+        });
+         soruHistoryContainer.addEventListener('click', e => {
+            if (e.target.closest('.delete-btn')) {
+                const id = Number(e.target.closest('.delete-btn').dataset.id);
+                userData.soruHistory = userData.soruHistory.filter(entry => entry.id !== id);
+                saveData(); renderSoruHistory(); showToast('Soru kaydı silindi.', 'error');
+            }
+        });
+
+        // --- YANLIŞ DEFTERİ ---
+        const yanlisForm = document.getElementById('yanlis-form');
+        const yanlisDersSelect = document.getElementById('yanlis-ders');
+        const yanlisHistoryContainer = document.getElementById('yanlis-history-container');
+        yanlisDersSelect.innerHTML = Object.keys(kpssData).map(ders => `<option value="${ders}">${ders}</option>`).join('');
+        
+        const renderYanlisDefteri = () => {
+            if (userData.yanlisDefteri.length === 0) { yanlisHistoryContainer.innerHTML = '<p class="empty-state">Hata defteriniz boş.</p>'; return; }
+            let tableHTML = '<table class="history-table"><thead><tr><th>Ders</th><th>Konu</th><th>Notlar</th><th>İşlem</th></tr></thead><tbody>';
+            userData.yanlisDefteri.forEach(entry => {
+                tableHTML += `<tr><td>${entry.ders}</td><td>${entry.konu}</td><td style="text-align:left; max-width: 400px; white-space: pre-wrap;">${entry.notlar}</td><td><button class="delete-btn" data-id="${entry.id}">&times;</button></td></tr>`;
+            });
+            tableHTML += '</tbody></table>';
+            yanlisHistoryContainer.innerHTML = tableHTML;
+        };
+        yanlisForm.addEventListener('submit', e => {
+            e.preventDefault();
+            userData.yanlisDefteri.unshift({ id: Date.now(), ders: yanlisDersSelect.value, konu: document.getElementById('yanlis-konu').value, notlar: document.getElementById('yanlis-notlar').value });
+            saveData(); renderYanlisDefteri(); yanlisForm.reset(); showToast('Yanlış soru deftere eklendi.');
+        });
+        yanlisHistoryContainer.addEventListener('click', e => {
+            if (e.target.closest('.delete-btn')) {
+                const id = Number(e.target.closest('.delete-btn').dataset.id);
+                userData.yanlisDefteri = userData.yanlisDefteri.filter(entry => entry.id !== id);
+                saveData(); renderYanlisDefteri(); showToast('Kayıt silindi.', 'error');
+            }
+        });
+
+        // --- POMODORO TIMER ---
+        const display = document.getElementById('pomodoro-display');
+        const status = document.getElementById('pomodoro-status');
+        const startBtn = document.getElementById('pomodoro-start');
+        const pauseBtn = document.getElementById('pomodoro-pause');
+        const resetBtn = document.getElementById('pomodoro-reset');
+        
+        let timerInterval; let timeLeft = 25 * 60; let isPaused = true; let isWorkSession = true;
+
+        const updateDisplay = () => {
+            const minutes = Math.floor(timeLeft / 60); const seconds = timeLeft % 60;
+            display.textContent = `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        };
+        const playSound = () => {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator(); const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode); gainNode.connect(audioContext.destination);
+                oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 1);
+                oscillator.start(audioContext.currentTime); oscillator.stop(audioContext.currentTime + 1);
+            } catch(e) { console.error("Could not play sound:", e); }
+        };
+        const startTimer = () => {
+            if (isPaused) {
+                isPaused = false;
+                timerInterval = setInterval(() => {
+                    timeLeft--; updateDisplay();
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval); playSound(); isWorkSession = !isWorkSession;
+                        timeLeft = isWorkSession ? 25 * 60 : 5 * 60;
+                        status.textContent = isWorkSession ? 'Çalışma Zamanı' : 'Mola Zamanı';
+                        status.style.color = isWorkSession ? 'var(--warning-color)' : 'var(--success-color)';
+                        isPaused = true; updateDisplay();
+                        showToast(isWorkSession ? "Çalışma zamanı başladı!" : "Mola zamanı!");
+                    }
+                }, 1000);
+            }
+        };
+        const pauseTimer = () => { isPaused = true; clearInterval(timerInterval); };
+        const resetTimer = () => {
+            pauseTimer(); isWorkSession = true; timeLeft = 25 * 60;
+            status.textContent = 'Çalışma Zamanı'; status.style.color = 'var(--warning-color)'; updateDisplay();
+        };
+        startBtn.addEventListener('click', startTimer); pauseBtn.addEventListener('click', pauseTimer); resetBtn.addEventListener('click', resetTimer);
 
         // --- HAFTALIK PLAN ---
         const weeklyPlanGrid = document.querySelector('#haftalik-plan-page .weekly-plan-grid');
-        weeklyPlanGrid.innerHTML = ''; // Temizle
+        weeklyPlanGrid.innerHTML = '';
         const days = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'];
-        let weeklyPlan = userData.weeklyPlan;
-
         days.forEach(day => {
             const dayCard = document.createElement('div');
             dayCard.className = 'day-card widget';
-            dayCard.innerHTML = `<h3>${day}</h3><textarea data-day="${day}" placeholder="Hedeflerini yaz..."></textarea>`;
-            const textarea = dayCard.querySelector('textarea');
-            textarea.value = weeklyPlan[day] || '';
-            textarea.addEventListener('input', () => {
-                weeklyPlan[day] = textarea.value;
-                userData.weeklyPlan = weeklyPlan;
-                saveData();
+            dayCard.innerHTML = `<h3>${day}</h3><textarea data-day="${day}" placeholder="Hedeflerini yaz...">${userData.weeklyPlan[day] || ''}</textarea>`;
+            dayCard.querySelector('textarea').addEventListener('input', (e) => {
+                userData.weeklyPlan[day] = e.target.value; saveData();
             });
             weeklyPlanGrid.appendChild(dayCard);
         });
-
-    } // initializeApp fonksiyonunun sonu
+        
+        // --- INITIAL RENDERS ---
+        startCountdown();
+        renderTodos();
+        updateProgress();
+        renderDenemeHistory();
+        renderDenemeChart();
+        renderSoruHistory();
+        renderYanlisDefteri();
+        renderDashboard();
+        updateDisplay();
+    }
     
-    // Sayfa yüklendiğinde oturum kontrolü yap ve uygulamayı başlat
     initializeApp();
 });
 </script>
 </body>
 </html>
+
