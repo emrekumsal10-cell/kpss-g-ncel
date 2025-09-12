@@ -632,7 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.keys(kpssData).forEach(subject => {
             const card = document.createElement('div');
             card.className = 'subject-card';
-            const topicListHTML = kpssData[subject].topics.map((topic, index) => `<li<label><input type="checkbox" data-id="${subject}-${index}" ${userData.topicProgress[`${subject}-${index}`] ? 'checked' : ''}><span>${topic}</span></label></li>`).join('');
+            const topicListHTML = kpssData[subject].topics.map((topic, index) => `<li><label><input type="checkbox" data-id="${subject}-${index}" ${userData.topicProgress[`${subject}-${index}`] ? 'checked' : ''}><span>${topic}</span></label></li>`).join('');
             card.innerHTML = `<div class="subject-header"><h3>${subject}</h3><span class="toggle-icon">+</span></div><progress value="0" max="100"></progress><p class="progress-text">0%</p><ul class="topic-list collapsed">${topicListHTML}</ul>`;
             subjectGrid.appendChild(card);
         });
@@ -676,10 +676,62 @@ document.addEventListener('DOMContentLoaded', () => {
         gkDersler.forEach(ders => { denemeFormHTML += `<label>${ders} (${kpssData[ders].q} Soru) (D/Y/B):</label><div style="display:flex; gap:5px; margin-bottom:0.5rem;"><input type="number" class="deneme-input" data-ders="${ders}" placeholder="D" min="0" max="${kpssData[ders].q}"><input type="number" class="deneme-input" data-ders="${ders}" placeholder="Y" min="0" max="${kpssData[ders].q}"><input type="number" class="deneme-input" data-ders="${ders}" placeholder="B" min="0" max="${kpssData[ders].q}"></div>`; });
         denemeFormHTML += `</fieldset><button type="submit">Denemeyi Kaydet</button>`;
         denemeForm.innerHTML = denemeFormHTML;
-        const renderDenemeHistory = () => { /* ... unchanged ... */ };
-        const renderDenemeChart = () => { /* ... unchanged ... */ };
-        denemeForm.addEventListener('submit', (e) => { /* ... unchanged ... */ });
-        denemeHistoryContainer.addEventListener('click', (e) => { /* ... unchanged ... */ });
+        const renderDenemeHistory = () => {
+            let tableHTML = '<table class="history-table"><thead><tr><th>Deneme Adı</th><th>Toplam Net</th><th>GY Net</th><th>GK Net</th><th>Tarih</th><th>İşlemler</th></tr></thead><tbody>';
+            userData.denemeHistory.forEach((deneme, index) => {
+                tableHTML += `<tr><td>${deneme.name}</td><td>${deneme.totalNet.toFixed(2)}</td><td>${deneme.gyNet.toFixed(2)}</td><td>${deneme.gkNet.toFixed(2)}</td><td>${deneme.date}</td><td><button class="details-btn" data-index="${index}" title="Detayları Gör">&#128269;</button><button class="delete-btn" data-index="${index}" title="Sil">&times;</button></td></tr>`;
+            });
+            tableHTML += '</tbody></table>';
+            denemeHistoryContainer.innerHTML = userData.denemeHistory.length ? tableHTML : '<p class="empty-state">Henüz deneme geçmişi bulunmuyor.</p>';
+        };
+        const renderDenemeChart = () => {
+            const ctx = document.getElementById('deneme-chart').getContext('2d');
+            if (denemeChartInstance) denemeChartInstance.destroy();
+            if(userData.denemeHistory.length === 0) return;
+            denemeChartInstance = new Chart(ctx, { type: 'line', data: { labels: userData.denemeHistory.map(d => `${d.name} (${d.date})`), datasets: [{ label: 'Toplam Net', data: userData.denemeHistory.map(d => d.totalNet), borderColor: 'rgba(233, 69, 96, 1)', backgroundColor: 'rgba(233, 69, 96, 0.2)', fill: true, tension: 0.1 }] }, options: { scales: { y: { beginAtZero: true } } } });
+        };
+        denemeForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nets = {};
+            try {
+                Object.keys(kpssData).forEach(ders => {
+                    const inputs = [...e.target.querySelectorAll(`.deneme-input[data-ders="${ders}"]`)];
+                    const d = Number(inputs[0].value) || 0; const y = Number(inputs[1].value) || 0; const b = Number(inputs[2].value) || 0;
+                    if ((d + y + b) > kpssData[ders].q) {
+                        showToast(`${ders} için girilen D/Y/B toplamı, toplam soru sayısını (${kpssData[ders].q}) aşıyor!`, 'error');
+                        throw new Error("Invalid input count");
+                    }
+                    nets[ders] = d - (y / 4);
+                });
+            } catch (error) { return; }
+            
+            const gyNet = gyDersler.reduce((sum, ders) => sum + nets[ders], 0);
+            const gkNet = gkDersler.reduce((sum, ders) => sum + nets[ders], 0);
+
+            userData.denemeHistory.push({ id: Date.now(), name: document.getElementById('deneme-adi').value, gyNet, gkNet, totalNet: gyNet + gkNet, date: new Date().toLocaleDateString('tr-TR'), netsByDers: nets });
+            saveData(); renderDenemeHistory(); renderDenemeChart(); renderDashboard(); denemeForm.reset(); showToast('Deneme başarıyla kaydedildi.');
+        });
+        denemeHistoryContainer.addEventListener('click', (e) => {
+            const detailsBtn = e.target.closest('.details-btn');
+            const deleteBtn = e.target.closest('.delete-btn');
+            if (deleteBtn) {
+                const index = deleteBtn.dataset.index;
+                userData.denemeHistory.splice(index, 1);
+                saveData(); renderDenemeHistory(); renderDenemeChart(); renderDashboard(); showToast('Deneme kaydı silindi.', 'error');
+            }
+            if (detailsBtn) {
+                const index = detailsBtn.dataset.index;
+                const deneme = userData.denemeHistory[index];
+                document.querySelector('#modal-title').textContent = `${deneme.name} - Detayları`;
+                let bodyHtml = '<ul>';
+                if (deneme.netsByDers) {
+                    for (const ders in deneme.netsByDers) { bodyHtml += `<li><strong>${ders}:</strong> ${deneme.netsByDers[ders].toFixed(2)} Net</li>`; }
+                } else { bodyHtml += '<li>Bu deneme için ders detayı kaydedilmemiş.</li>'; }
+                bodyHtml += '</ul>';
+                document.querySelector('#modal-body').innerHTML = bodyHtml;
+                denemeModal.style.display = 'flex';
+            }
+        });
         denemeModal.querySelector('.modal-close').addEventListener('click', () => denemeModal.style.display = 'none');
         denemeModal.addEventListener('click', (e) => { if(e.target === denemeModal) denemeModal.style.display = 'none'; });
 
@@ -690,18 +742,61 @@ document.addEventListener('DOMContentLoaded', () => {
         const soruHistoryContainer = document.getElementById('soru-history-container');
         soruTarihInput.valueAsDate = new Date();
         soruDersSelect.innerHTML = Object.keys(kpssData).map(ders => `<option value="${ders}">${ders}</option>`).join('');
-        const renderSoruHistory = () => { /* ... unchanged ... */ };
-        soruForm.addEventListener('submit', e => { /* ... unchanged ... */ });
-        soruHistoryContainer.addEventListener('click', e => { /* ... unchanged ... */ });
+        const renderSoruHistory = () => {
+             if (userData.soruHistory.length === 0) {
+                soruHistoryContainer.innerHTML = '<p class="empty-state">Henüz soru kaydı bulunmuyor.</p>'; return;
+            }
+            let tableHTML = '<table class="history-table"><thead><tr><th>Tarih</th><th>Ders</th><th>Soru</th><th>Doğru</th><th>Net</th><th>İşlem</th></tr></thead><tbody>';
+            const sortedHistory = [...userData.soruHistory].sort((a, b) => new Date(b.date) - new Date(a.date));
+            sortedHistory.forEach((entry) => {
+                const net = entry.dogru - ((entry.soru - entry.dogru) / 4);
+                tableHTML += `<tr><td>${new Date(entry.date).toLocaleDateString('tr-TR')}</td><td>${entry.ders}</td><td>${entry.soru}</td><td>${entry.dogru}</td><td>${net.toFixed(2)}</td><td><button class="delete-btn" data-id="${entry.id}">&times;</button></td></tr>`;
+            });
+            tableHTML += '</tbody></table>';
+            soruHistoryContainer.innerHTML = tableHTML;
+        };
+        soruForm.addEventListener('submit', e => {
+            e.preventDefault();
+            const soruSayisi = Number(document.getElementById('soru-sayisi').value);
+            const dogruSayisi = Number(document.getElementById('soru-dogru').value);
+            if(dogruSayisi > soruSayisi) { showToast('Doğru sayısı çözülen soru sayısından fazla olamaz!', 'error'); return; }
+            userData.soruHistory.push({ id: Date.now(), date: soruTarihInput.value, ders: soruDersSelect.value, soru: soruSayisi, dogru: dogruSayisi });
+            saveData(); renderSoruHistory(); soruForm.reset(); soruTarihInput.valueAsDate = new Date(); showToast('Soru kaydı eklendi.');
+        });
+        soruHistoryContainer.addEventListener('click', e => {
+            if (e.target.closest('.delete-btn')) {
+                const id = Number(e.target.closest('.delete-btn').dataset.id);
+                userData.soruHistory = userData.soruHistory.filter(entry => entry.id !== id);
+                saveData(); renderSoruHistory(); showToast('Soru kaydı silindi.', 'error');
+            }
+        });
 
         // --- YANLIŞ DEFTERİ ---
         const yanlisForm = document.getElementById('yanlis-form');
         const yanlisDersSelect = document.getElementById('yanlis-ders');
         const yanlisHistoryContainer = document.getElementById('yanlis-history-container');
         yanlisDersSelect.innerHTML = Object.keys(kpssData).map(ders => `<option value="${ders}">${ders}</option>`).join('');
-        const renderYanlisDefteri = () => { /* ... unchanged ... */ };
-        yanlisForm.addEventListener('submit', e => { /* ... unchanged ... */ });
-        yanlisHistoryContainer.addEventListener('click', e => { /* ... unchanged ... */ });
+        const renderYanlisDefteri = () => {
+            if (userData.yanlisDefteri.length === 0) { yanlisHistoryContainer.innerHTML = '<p class="empty-state">Hata defteriniz boş.</p>'; return; }
+            let tableHTML = '<table class="history-table"><thead><tr><th>Ders</th><th>Konu</th><th>Notlar</th><th>İşlem</th></tr></thead><tbody>';
+            userData.yanlisDefteri.forEach(entry => {
+                tableHTML += `<tr><td>${entry.ders}</td><td>${entry.konu}</td><td style="text-align:left; max-width: 400px; white-space: pre-wrap;">${entry.notlar}</td><td><button class="delete-btn" data-id="${entry.id}">&times;</button></td></tr>`;
+            });
+            tableHTML += '</tbody></table>';
+            yanlisHistoryContainer.innerHTML = tableHTML;
+        };
+        yanlisForm.addEventListener('submit', e => {
+            e.preventDefault();
+            userData.yanlisDefteri.unshift({ id: Date.now(), ders: yanlisDersSelect.value, konu: document.getElementById('yanlis-konu').value, notlar: document.getElementById('yanlis-notlar').value });
+            saveData(); renderYanlisDefteri(); yanlisForm.reset(); showToast('Yanlış soru deftere eklendi.');
+        });
+        yanlisHistoryContainer.addEventListener('click', e => {
+            if (e.target.closest('.delete-btn')) {
+                const id = Number(e.target.closest('.delete-btn').dataset.id);
+                userData.yanlisDefteri = userData.yanlisDefteri.filter(entry => entry.id !== id);
+                saveData(); renderYanlisDefteri(); showToast('Kayıt silindi.', 'error');
+            }
+        });
         
         // --- POMODORO TIMER ---
         const display = document.getElementById('pomodoro-display');
@@ -710,11 +805,42 @@ document.addEventListener('DOMContentLoaded', () => {
         const pauseBtn = document.getElementById('pomodoro-pause');
         const resetBtn = document.getElementById('pomodoro-reset');
         let timerInterval; let timeLeft = 25 * 60; let isPaused = true; let isWorkSession = true;
-        const updateDisplay = () => { /* ... unchanged ... */ };
-        const playSound = () => { /* ... unchanged ... */ };
-        const startTimer = () => { /* ... unchanged ... */ };
-        const pauseTimer = () => { /* ... unchanged ... */ };
-        const resetTimer = () => { /* ... unchanged ... */ };
+        const updateDisplay = () => {
+            const minutes = Math.floor(timeLeft / 60); const seconds = timeLeft % 60;
+            display.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        };
+        const playSound = () => {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator(); const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode); gainNode.connect(audioContext.destination);
+                oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 1);
+                oscillator.start(audioContext.currentTime); oscillator.stop(audioContext.currentTime + 1);
+            } catch(e) { console.error("Could not play sound:", e); }
+        };
+        const startTimer = () => {
+            if (isPaused) {
+                isPaused = false;
+                timerInterval = setInterval(() => {
+                    timeLeft--; updateDisplay();
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval); playSound(); isWorkSession = !isWorkSession;
+                        timeLeft = isWorkSession ? 25 * 60 : 5 * 60;
+                        status.textContent = isWorkSession ? 'Çalışma Zamanı' : 'Mola Zamanı';
+                        status.style.color = isWorkSession ? 'var(--warning-color)' : 'var(--success-color)';
+                        isPaused = true; updateDisplay();
+                        showToast(isWorkSession ? "Çalışma zamanı başladı!" : "Mola zamanı!");
+                    }
+                }, 1000);
+            }
+        };
+        const pauseTimer = () => { isPaused = true; clearInterval(timerInterval); };
+        const resetTimer = () => {
+            pauseTimer(); isWorkSession = true; timeLeft = 25 * 60;
+            status.textContent = 'Çalışma Zamanı'; status.style.color = 'var(--warning-color)'; updateDisplay();
+        };
         startBtn.addEventListener('click', startTimer); pauseBtn.addEventListener('click', pauseTimer); resetBtn.addEventListener('click', resetTimer);
 
         // --- HAFTALIK PLAN (GELİŞTİRİLDİ) ---
@@ -799,29 +925,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // --- INITIAL RENDERS ---
-        startCountdown();
-        renderTodos();
-        updateProgress();
-        // renderDenemeHistory(); // These are now part of the functions they belong to
-        // renderDenemeChart();
-        // renderSoruHistory();
-        // renderYanlisDefteri();
-        renderDashboard();
-        // updateDisplay();
-        renderWeeklyPlan();
-
-        // Re-call functions that might have been skipped on init
         const initRenders = () => {
-            Object.values(document.querySelectorAll('.history-table-container')).forEach(el => {
-                if(el.innerHTML === '') {
-                    if(el.id === 'deneme-history-container') renderDenemeHistory();
-                    if(el.id === 'soru-history-container') renderSoruHistory();
-                    if(el.id === 'yanlis-history-container') renderYanlisDefteri();
-                }
-            });
+            startCountdown();
+            renderTodos();
+            updateProgress();
+            renderDenemeHistory();
             renderDenemeChart();
+            renderSoruHistory();
+            renderYanlisDefteri();
+            renderDashboard();
             updateDisplay();
+            renderWeeklyPlan();
         };
+        
         initRenders();
     }
     
