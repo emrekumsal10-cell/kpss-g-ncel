@@ -63,11 +63,33 @@
         .countdown-grid { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; }
         .countdown-item { font-size: 2rem; font-weight: 700; } .countdown-item span { display: block; font-size: 0.8rem; color: var(--text-muted); }
 
-        /* Konu Takibi */
+        /* Konu Takibi - DÜZENLENDİ */
         .subject-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
         .subject-card { background-color: var(--primary-color); padding: 1rem; border-radius: 8px; }
+        .subject-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        .subject-header h3 { margin-bottom: 0; }
+        .toggle-icon { font-size: 2rem; font-weight: 300; line-height: 1; }
         .subject-card progress { width: 100%; margin: 0.5rem 0; accent-color: var(--secondary-color); }
-        .topic-list { list-style: none; padding-left: 0.5rem; max-height: 250px; overflow-y: auto; }
+        .topic-list {
+            list-style: none;
+            padding-left: 0.5rem;
+            max-height: 250px; /* Açık durumdaki yükseklik */
+            overflow-y: auto;
+            transition: max-height 0.4s ease-in-out, padding 0.4s ease-in-out, margin 0.4s ease-in-out;
+            margin-top: 0.5rem;
+        }
+        .topic-list.collapsed {
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-top: 0;
+            overflow: hidden;
+        }
         .topic-list label { display: flex; align-items: center; cursor: pointer; }
         .topic-list input[type="checkbox"] { margin-right: 0.8rem; }
         .topic-list input:checked + span { text-decoration: line-through; color: var(--text-muted); }
@@ -482,16 +504,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const quotes = ["Başarının sırrı, başlamaktır.", "Bugünün tekrarı, yarının netidir.", "Unutma, her net bir adımdır.", "En büyük zafer, hiç düşmemek değil, her düştüğünde kalkabilmektir."];
         document.getElementById('quote').textContent = `"${quotes[Math.floor(Math.random() * quotes.length)]}"`;
 
-        // --- KONU TAKIBI ---
+        // --- KONU TAKIBI (DÜZENLENDİ)---
         const subjectGrid = document.querySelector('#konu-takip-page .subject-grid');
         subjectGrid.innerHTML = '';
         Object.keys(kpssData).forEach(subject => {
             const card = document.createElement('div');
             card.className = 'subject-card';
-            const topicListHTML = kpssData[subject].topics.map((topic, index) => `<li<label><input type="checkbox" data-id="${subject}-${index}" ${userData.topicProgress[`${subject}-${index}`] ? 'checked' : ''}><span>${topic}</span></label></li>`).join('');
-            card.innerHTML = `<h3>${subject}</h3><progress value="0" max="100"></progress><p class="progress-text">0%</p><ul class="topic-list">${topicListHTML}</ul>`;
+            const topicListHTML = kpssData[subject].topics.map((topic, index) => {
+                const topicId = `${subject}-${index}`;
+                const isChecked = userData.topicProgress[topicId] ? 'checked' : '';
+                return `<li><label><input type="checkbox" data-id="${topicId}" ${isChecked}><span>${topic}</span></label></li>`;
+            }).join('');
+            
+            card.innerHTML = `
+                <div class="subject-header">
+                    <h3>${subject}</h3>
+                    <span class="toggle-icon">+</span>
+                </div>
+                <progress value="0" max="100"></progress>
+                <p class="progress-text">0%</p>
+                <ul class="topic-list collapsed">${topicListHTML}</ul>`;
             subjectGrid.appendChild(card);
         });
+
         const updateProgress = () => {
             Object.keys(kpssData).forEach(subject => {
                 const topics = kpssData[subject].topics;
@@ -505,13 +540,32 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             renderDashboard();
         };
-        subjectGrid.addEventListener('change', e => {
-            if (e.target.type === 'checkbox') {
-                userData.topicProgress[e.target.dataset.id] = e.target.checked;
-                saveData(); updateProgress();
+
+        subjectGrid.addEventListener('click', e => {
+            const header = e.target.closest('.subject-header');
+            if (!header) return;
+
+            const card = header.parentElement;
+            const list = card.querySelector('.topic-list');
+            const icon = card.querySelector('.toggle-icon');
+
+            list.classList.toggle('collapsed');
+            
+            if (list.classList.contains('collapsed')) {
+                icon.textContent = '+';
+            } else {
+                icon.textContent = '−';
             }
         });
 
+        subjectGrid.addEventListener('change', e => {
+            if (e.target.type === 'checkbox') {
+                userData.topicProgress[e.target.dataset.id] = e.target.checked;
+                saveData();
+                updateProgress();
+            }
+        });
+        
         // --- DENEME ANALIZI ---
         const denemeForm = document.getElementById('deneme-form');
         const denemeHistoryContainer = document.getElementById('deneme-history-container');
